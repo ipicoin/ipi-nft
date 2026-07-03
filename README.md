@@ -6,6 +6,10 @@
 
 This is a Cosmos App project bootstrapped with [`create-cosmos-app`](https://github.com/hyperweb-io/create-cosmos-app).
 
+## Product Requirements
+
+📄 **[docs/PRD.md](docs/PRD.md)** — PRD standardu i aplikacji NFT w IPI (CosmWasm cw721 + IPFS/Arweave + `wallet-core.js` + RPC). Definiuje cel, zakres MVP, standard, model danych, user stories i kryteria akceptacji. Domyka issue #1.
+
 ## Getting Started
 
 First, install the packages and run the development server:
