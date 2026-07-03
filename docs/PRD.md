@@ -31,7 +31,7 @@ i po zatwierdzeniu zamyka #1, dostarczając brakujący „clear picture".
 - **G3.** Zapewnić trwałe, zdecentralizowane przechowywanie assetów i metadanych
   (IPFS / Arweave) — brak zależności od pojedynczego serwera.
 - **G4.** Spiąć frontend z tożsamością i podpisem przez `wallet-core.js`
-  (Fala 2) oraz z siecią przez RPC `https://ipi.io/rpc`.
+  (Fala 2) oraz z siecią przez RPC `https://ipicoin.eu/rpc`.
 
 ### Cele poza zakresem tej wersji (Non-goals / patrz §12)
 
@@ -62,7 +62,7 @@ i po zatwierdzeniu zamyka #1, dostarczając brakujący „clear picture".
 3. Frontend: połączenie portfela, **mint**, **transfer**, **przeglądanie
    kolekcji**, **widok pojedynczego tokenu z metadanymi**.
 4. Upload assetu + JSON metadanych na IPFS/Arweave przed mintem.
-5. Broadcast transakcji przez `ipi-rpc` (`https://ipi.io/rpc`),
+5. Broadcast transakcji przez `ipi-rpc` (`https://ipicoin.eu/rpc`),
    podpis przez `wallet-core.js`.
 6. Test e2e: **mint → transfer → query owner**.
 
@@ -190,7 +190,7 @@ cw721):
 | **Kontrakt** | CosmWasm `cw721-base`, `cw-template` (scaffold), **ts-codegen** | standard NFT + typy TS z ABI kontraktu |
 | **Podpis / tożsamość** | `wallet-core.js` (Fala 2) | połączenie portfela, podpisywanie tx mint/transfer |
 | **Storage** | IPFS (`helia`), Arweave (`arweave-js`) — forki org | assety + JSON metadanych, adresowanie treścią |
-| **Sieć / broadcast** | RPC `https://ipi.io/rpc` (ipi-rpc, Fala 2) | zapytania stanu + rozgłaszanie podpisanych tx |
+| **Sieć / broadcast** | RPC `https://ipicoin.eu/rpc` (ipi-rpc, Fala 2) | zapytania stanu + rozgłaszanie podpisanych tx |
 | **Frontend** | Next.js + Interchain UI (istniejący boilerplate) | UI mint/transfer/kolekcje |
 
 Przepływ mint (end-to-end):
