@@ -25,9 +25,13 @@ i po zatwierdzeniu zamyka #1, dostarczając brakujący „clear picture".
 
 - **G1.** Dać ekosystemowi IPI kanoniczny, audytowalny standard tokenów
   niewymiennych oparty o sprawdzony wzorzec **cw721-base** (CosmWasm).
-- **G2.** Umożliwić dowolnemu użytkownikowi wybicie (mint), przeniesienie
-  (transfer) i przeglądanie NFT z poziomu przeglądarki, bez zaufanego
-  pośrednika.
+- **G2.** Umożliwić dowolnemu użytkownikowi **utworzenie własnej kolekcji**
+  (przez kontrakt-fabrykę, patrz §5.1.1) i wybijanie (mint) w niej NFT jako jej
+  `minter`, a każdemu posiadaczowi — przenoszenie (transfer) i przeglądanie NFT
+  z poziomu przeglądarki, bez zaufanego pośrednika. Uwaga: sam wzorzec
+  `cw721-base` ogranicza `mint` do jednego, ustawionego przy instancjacji
+  adresu `minter` — permissionless charakter osiągamy modelem *factory
+  per-creator* (§5.1.1), a **nie** wspólnym kontraktem z otwartym mintem.
 - **G3.** Zapewnić trwałe, zdecentralizowane przechowywanie assetów i metadanych
   (IPFS / Arweave) — brak zależności od pojedynczego serwera.
 - **G4.** Spiąć frontend z tożsamością i podpisem przez `wallet-core.js`
@@ -56,7 +60,9 @@ i po zatwierdzeniu zamyka #1, dostarczając brakujący „clear picture".
 
 **W zakresie MVP:**
 
-1. Kontrakt cw721 (na bazie `cw721-base`) wdrożony w łańcuchu IPI.
+1. Kontrakt cw721 (na bazie `cw721-base`) wdrożony w łańcuchu IPI oraz minimalny
+   kontrakt-fabryka `ipi-nft-factory` instancjonujący kolekcje per-twórca
+   (twórca = `minter` swojej kolekcji, patrz §5.1.1).
 2. Metadane tokenu zgodne z rozszerzeniem `cw721-metadata-onchain` **lub**
    `token_uri` wskazujący na IPFS/Arweave (patrz §6).
 3. Frontend: połączenie portfela, **mint**, **transfer**, **przeglądanie
@@ -86,6 +92,32 @@ Bazujemy na `cw721-base`; kontrakt IPI (`ipi-cw721`) instancjonuje ten wzorzec
 i dokłada, w razie potrzeby, minimalne rozszerzenia (np. `royalty_info` jako
 pole metadanych — patrz later).
 
+### 5.1.1 Model mint (kluczowa decyzja)
+
+`cw721-base` ma **restrykcyjny mint**: przy instancjacji ustawiany jest jeden
+adres `minter` i **tylko on** może wykonać `mint` (kontrakt sprawdza wywołującego
+względem zapisanego mintera). To bezpośrednio kłóci się z dosłownym odczytem G2
+(„dowolny użytkownik mint bez pośrednika") — w pojedynczym kontrakcie
+`cw721-base` mint **nie** jest permissionless.
+
+**Decyzja MVP — model *factory per-creator* (wymóg techniczny).** Wdrażamy
+minimalny kontrakt-fabrykę `ipi-nft-factory`, który na żądanie dowolnego
+użytkownika **instancjonuje nową kolekcję `ipi-cw721`**, ustawiając wywołującego
+jako jej `minter`. Dzięki temu:
+
+- każdy użytkownik może bez pośrednika założyć własną kolekcję i wybijać w niej
+  NFT — obietnica G2 jest spełniona na poziomie ekosystemu,
+- w obrębie jednej kolekcji mint pozostaje kontrolowany przez jej twórcę
+  (kurator kolekcji = `minter`), zgodnie z modelem `cw721-base`,
+- `transfer`, `approve`/`revoke` i przeglądanie są permissionless dla każdego
+  posiadacza.
+
+**Wariant alternatywny — open-mint** (permissionless `mint` we wspólnym
+kontrakcie) wymaga zmodyfikowanego kontraktu (nadpisanie handlera `mint`,
+usunięcie sprawdzenia `minter`) i wiąże się z ryzykiem spamu oraz braku
+kuratorstwa treści. Jest świadomie **poza MVP**; MVP przyjmuje *factory
+per-creator*.
+
 ### 5.2 Wiadomości kontraktu (interfejs)
 
 **Execute:**
@@ -94,7 +126,13 @@ pole metadanych — patrz later).
 
 **Query:**
 `owner_of`, `approval` / `approvals`, `num_tokens`, `contract_info`,
-`nft_info`, `all_nft_info`, `tokens` (per owner), `all_tokens`.
+`nft_info`, `all_nft_info`, `tokens` (per owner), `all_tokens`,
+`minter` (osobne zapytanie zwracające adres uprawniony do `mint`; w nowszych
+wersjach cw721 rolę tę pełni też `ownership`).
+
+> **Uwaga (kontrakt):** `contract_info` (`ContractInfoResponse`) zwraca
+> **wyłącznie** `name` i `symbol` — **nie** zawiera `minter`. Adres mintera
+> pobiera się osobnym zapytaniem `minter {}` (`MinterResponse`).
 
 ### 5.3 Metadane: on-chain vs off-chain
 
@@ -157,7 +195,9 @@ cw721):
 | `token_uri` | string? | `ipfs://` / `ar://` → JSON metadanych |
 | `extension` | struct? | opcjonalne metadane on-chain (name, hash) |
 
-**Kolekcja (`contract_info`):** `name`, `symbol`, `minter`.
+**Kolekcja:** `contract_info` (`ContractInfoResponse`) zwraca `name` i `symbol`.
+`minter` (adres uprawniony do `mint`) **nie** jest częścią `contract_info` —
+pobiera się go osobnym zapytaniem `minter {}` (`MinterResponse`).
 
 ---
 
@@ -187,7 +227,7 @@ cw721):
 
 | Warstwa | Narzędzie | Rola |
 | --- | --- | --- |
-| **Kontrakt** | CosmWasm `cw721-base`, `cw-template` (scaffold), **ts-codegen** | standard NFT + typy TS z ABI kontraktu |
+| **Kontrakt** | CosmWasm `cw721-base` + `ipi-nft-factory`, `cw-template` (scaffold), **ts-codegen** | standard NFT + fabryka kolekcji per-twórca (§5.1.1) + typy TS z ABI kontraktu |
 | **Podpis / tożsamość** | `wallet-core.js` (Fala 2) | połączenie portfela, podpisywanie tx mint/transfer |
 | **Storage** | IPFS (`helia`), Arweave (`arweave-js`) — forki org | assety + JSON metadanych, adresowanie treścią |
 | **Sieć / broadcast** | RPC `https://ipicoin.eu/rpc` (ipi-rpc, Fala 2) | zapytania stanu + rozgłaszanie podpisanych tx |
@@ -226,8 +266,11 @@ render z `nft_info` + fetch metadanych.
 
 **Globalne kryterium akceptacji (z issue #2):**
 - [ ] PRD zatwierdzony i #1 zamknięte.
-- [ ] Kontrakt cw721 (mint/transfer/burn/approve) utworzony.
-- [ ] Zapytania (`owner_of`, `tokens`, `num_tokens`) działają.
+- [ ] Kontrakt cw721 (mint/transfer/burn/approve) oraz fabryka
+  `ipi-nft-factory` (instancjacja kolekcji, ustawienie `minter` = twórca)
+  utworzone.
+- [ ] Zapytania (`owner_of`, `tokens`, `num_tokens`, `minter`) działają;
+  `contract_info` zwraca `name`+`symbol` (bez `minter`).
 - [ ] Frontend spięty z `wallet-core` (podpis) i `ipi-rpc` (broadcast).
 - [ ] Test e2e: mint → transfer → query owner.
 
