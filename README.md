@@ -1,7 +1,7 @@
 # IPI NFT Research Interface
 
-An experimental Cosmos NFT interface for studying wallet connection, mint,
-sale, unlist, price-update, and burn flows.
+A Cosmos NFT interface for evaluating wallet connection, mint, sale, unlist,
+price-update, and burn flows.
 
 > **Status: inherited prototype.** It is not an official marketplace, asset
 > registry, or audited production application. Do not use it with assets of
