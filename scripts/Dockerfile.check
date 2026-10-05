@@ -1,0 +1,3 @@
+FROM cosmwasm/optimizer@sha256:7e0b9229c1a4118d0c9a2af2e7f5d95a91f264c26a2ce5681c779926e74d7f85
+RUN rustup component add rustfmt clippy
+WORKDIR /code

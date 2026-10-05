@@ -1,0 +1,7 @@
+{
+  "chainId": "ipi-testnet-1",
+  "rest": "https://rest-testnet.ipi.io",
+  "collection": null,
+  "codeId": null,
+  "wasmSha256": null
+}
