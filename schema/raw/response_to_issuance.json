@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Issuance",
+  "type": "object",
+  "required": [
+    "burned",
+    "extension",
+    "initial_owner",
+    "issuer",
+    "minted_height",
+    "token_id",
+    "token_uri"
+  ],
+  "properties": {
+    "burned": {
+      "type": "boolean"
+    },
+    "extension": {
+      "$ref": "#/definitions/ChipExtension"
+    },
+    "initial_owner": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "minted_height": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "token_id": {
+      "type": "string"
+    },
+    "token_uri": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "ChipExtension": {
+      "type": "object",
+      "required": [
+        "binding_sha256",
+        "chip_public_key",
+        "metadata_sha256",
+        "protocol"
+      ],
+      "properties": {
+        "binding_sha256": {
+          "$ref": "#/definitions/HexBinary"
+        },
+        "chip_public_key": {
+          "$ref": "#/definitions/Binary"
+        },
+        "metadata_sha256": {
+          "$ref": "#/definitions/HexBinary"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HexBinary": {
+      "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    }
+  }
+}

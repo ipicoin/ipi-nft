@@ -1,0 +1,29 @@
+[package]
+name = "ipi-nft"
+description = "CW721 NFTs bound to non-exportable chip keys on IPI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+
+[dependencies]
+cosmwasm-schema = "=2.3.4"
+cosmwasm-std = "=2.3.4"
+cw721 = "=0.20.0"
+cw-storage-plus = "=2.0.0"
+cw-ownable = "=2.1.0"
+cw-utils = "=2.0.0"
+sha2 = "=0.10.9"
+thiserror = "=1.0.69"
+
+[dev-dependencies]
+cw-multi-test = "=2.5.1"
+k256 = { version = "=0.13.4", features = ["ecdsa"] }
+serde_json = "1.0"
+

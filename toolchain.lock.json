@@ -1,0 +1,11 @@
+{
+  "optimizer": "cosmwasm/optimizer@sha256:7e0b9229c1a4118d0c9a2af2e7f5d95a91f264c26a2ce5681c779926e74d7f85",
+  "optimizerVersion": "0.17.0",
+  "releasePlatform": "linux/amd64",
+  "rustRelease": "1.86.0",
+  "cosmwasmStd": "2.3.4",
+  "cosmwasmVm": "2.3.4",
+  "cw721": "0.20.0",
+  "nodeMajor": 24,
+  "dependencyLocks": ["Cargo.lock", "tools/wasm-tests/Cargo.lock", "package-lock.json"]
+}

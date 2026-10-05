@@ -1,0 +1,3301 @@
+{
+  "contract_name": "ipi-nft",
+  "contract_version": "0.1.0",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "type": "object",
+    "required": [
+      "expected_chain_id",
+      "minter",
+      "name",
+      "symbol"
+    ],
+    "properties": {
+      "expected_chain_id": {
+        "type": "string"
+      },
+      "minter": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "symbol": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "mint"
+        ],
+        "properties": {
+          "mint": {
+            "type": "object",
+            "required": [
+              "chip_proof",
+              "chip_public_key",
+              "metadata_sha256",
+              "owner",
+              "token_id",
+              "token_uri"
+            ],
+            "properties": {
+              "chip_proof": {
+                "$ref": "#/definitions/Binary"
+              },
+              "chip_public_key": {
+                "$ref": "#/definitions/Binary"
+              },
+              "metadata_sha256": {
+                "$ref": "#/definitions/HexBinary"
+              },
+              "owner": {
+                "type": "string"
+              },
+              "token_id": {
+                "type": "string"
+              },
+              "token_uri": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "transfer_nft"
+        ],
+        "properties": {
+          "transfer_nft": {
+            "type": "object",
+            "required": [
+              "recipient",
+              "token_id"
+            ],
+            "properties": {
+              "recipient": {
+                "type": "string"
+              },
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "send_nft"
+        ],
+        "properties": {
+          "send_nft": {
+            "type": "object",
+            "required": [
+              "contract",
+              "msg",
+              "token_id"
+            ],
+            "properties": {
+              "contract": {
+                "type": "string"
+              },
+              "msg": {
+                "$ref": "#/definitions/Binary"
+              },
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "approve"
+        ],
+        "properties": {
+          "approve": {
+            "type": "object",
+            "required": [
+              "spender",
+              "token_id"
+            ],
+            "properties": {
+              "expires": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Expiration"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "spender": {
+                "type": "string"
+              },
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "revoke"
+        ],
+        "properties": {
+          "revoke": {
+            "type": "object",
+            "required": [
+              "spender",
+              "token_id"
+            ],
+            "properties": {
+              "spender": {
+                "type": "string"
+              },
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "approve_all"
+        ],
+        "properties": {
+          "approve_all": {
+            "type": "object",
+            "required": [
+              "operator"
+            ],
+            "properties": {
+              "expires": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Expiration"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "operator": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "revoke_all"
+        ],
+        "properties": {
+          "revoke_all": {
+            "type": "object",
+            "required": [
+              "operator"
+            ],
+            "properties": {
+              "operator": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "burn"
+        ],
+        "properties": {
+          "burn": {
+            "type": "object",
+            "required": [
+              "token_id"
+            ],
+            "properties": {
+              "token_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_minter_ownership"
+        ],
+        "properties": {
+          "update_minter_ownership": {
+            "$ref": "#/definitions/Action"
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "Action": {
+        "description": "Actions that can be taken to alter the contract's ownership",
+        "oneOf": [
+          {
+            "description": "Propose to transfer the contract's ownership to another account, optionally with an expiry time.\n\nCan only be called by the contract's current owner.\n\nAny existing pending ownership transfer is overwritten.",
+            "type": "object",
+            "required": [
+              "transfer_ownership"
+            ],
+            "properties": {
+              "transfer_ownership": {
+                "type": "object",
+                "required": [
+                  "new_owner"
+                ],
+                "properties": {
+                  "expiry": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Expiration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_owner": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Accept the pending ownership transfer.\n\nCan only be called by the pending owner.",
+            "type": "string",
+            "enum": [
+              "accept_ownership"
+            ]
+          },
+          {
+            "description": "Give up the contract's ownership and the possibility of appointing a new owner.\n\nCan only be invoked by the contract's current owner.\n\nAny existing pending ownership transfer is canceled.",
+            "type": "string",
+            "enum": [
+              "renounce_ownership"
+            ]
+          }
+        ]
+      },
+      "Binary": {
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "Expiration": {
+        "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+        "oneOf": [
+          {
+            "description": "AtHeight will expire when `env.block.height` >= height",
+            "type": "object",
+            "required": [
+              "at_height"
+            ],
+            "properties": {
+              "at_height": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "AtTime will expire when `env.block.time` >= time",
+            "type": "object",
+            "required": [
+              "at_time"
+            ],
+            "properties": {
+              "at_time": {
+                "$ref": "#/definitions/Timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Never will never expire. Used to express the empty variant",
+            "type": "object",
+            "required": [
+              "never"
+            ],
+            "properties": {
+              "never": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "HexBinary": {
+        "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "Timestamp": {
+        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint64"
+          }
+        ]
+      },
+      "Uint64": {
+        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "type": "string"
+      }
+    }
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "anyOf": [
+      {
+        "$ref": "#/definitions/IpiQueryMsg"
+      },
+      {
+        "$ref": "#/definitions/Cw721QueryMsg_for_ChipExtension_and_Nullable_CollectionExtension_for_RoyaltyInfo_and_Empty"
+      }
+    ],
+    "definitions": {
+      "Addr": {
+        "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+        "type": "string"
+      },
+      "Binary": {
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "ChipExtension": {
+        "type": "object",
+        "required": [
+          "binding_sha256",
+          "chip_public_key",
+          "metadata_sha256",
+          "protocol"
+        ],
+        "properties": {
+          "binding_sha256": {
+            "$ref": "#/definitions/HexBinary"
+          },
+          "chip_public_key": {
+            "$ref": "#/definitions/Binary"
+          },
+          "metadata_sha256": {
+            "$ref": "#/definitions/HexBinary"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionExtension_for_RoyaltyInfo": {
+        "type": "object",
+        "required": [
+          "description",
+          "image"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "explicit_content": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "external_link": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image": {
+            "type": "string"
+          },
+          "royalty_info": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/RoyaltyInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_trading_time": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Cw721QueryMsg_for_ChipExtension_and_Nullable_CollectionExtension_for_RoyaltyInfo_and_Empty": {
+        "oneOf": [
+          {
+            "description": "Return the owner of the given token, error if token does not exist",
+            "type": "object",
+            "required": [
+              "owner_of"
+            ],
+            "properties": {
+              "owner_of": {
+                "type": "object",
+                "required": [
+                  "token_id"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "description": "unset or false will filter out expired approvals, you must set to true to see them",
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Return operator that can access all of the owner's tokens.",
+            "type": "object",
+            "required": [
+              "approval"
+            ],
+            "properties": {
+              "approval": {
+                "type": "object",
+                "required": [
+                  "spender",
+                  "token_id"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "spender": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Return approvals that a token has",
+            "type": "object",
+            "required": [
+              "approvals"
+            ],
+            "properties": {
+              "approvals": {
+                "type": "object",
+                "required": [
+                  "token_id"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Return approval of a given operator for all tokens of an owner, error if not set",
+            "type": "object",
+            "required": [
+              "operator"
+            ],
+            "properties": {
+              "operator": {
+                "type": "object",
+                "required": [
+                  "operator",
+                  "owner"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "operator": {
+                    "type": "string"
+                  },
+                  "owner": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "List all operators that can access all of the owner's tokens",
+            "type": "object",
+            "required": [
+              "all_operators"
+            ],
+            "properties": {
+              "all_operators": {
+                "type": "object",
+                "required": [
+                  "owner"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "description": "unset or false will filter out expired items, you must set to true to see them",
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "limit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0.0
+                  },
+                  "owner": {
+                    "type": "string"
+                  },
+                  "start_after": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Total number of tokens issued",
+            "type": "object",
+            "required": [
+              "num_tokens"
+            ],
+            "properties": {
+              "num_tokens": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Deprecated: use GetCollectionInfoAndExtension instead! Will be removed in next release!",
+            "deprecated": true,
+            "type": "object",
+            "required": [
+              "contract_info"
+            ],
+            "properties": {
+              "contract_info": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Returns `AllCollectionInfoResponse`",
+            "type": "object",
+            "required": [
+              "get_config"
+            ],
+            "properties": {
+              "get_config": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Returns `CollectionInfoAndExtensionResponse`",
+            "type": "object",
+            "required": [
+              "get_collection_info_and_extension"
+            ],
+            "properties": {
+              "get_collection_info_and_extension": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "returns `AllInfoResponse` which contains contract, collection and nft details",
+            "type": "object",
+            "required": [
+              "get_all_info"
+            ],
+            "properties": {
+              "get_all_info": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Returns `CollectionExtensionAttributes`",
+            "type": "object",
+            "required": [
+              "get_collection_extension_attributes"
+            ],
+            "properties": {
+              "get_collection_extension_attributes": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Deprecated: use GetMinterOwnership instead! Will be removed in next release!",
+            "deprecated": true,
+            "type": "object",
+            "required": [
+              "ownership"
+            ],
+            "properties": {
+              "ownership": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Return the minter Deprecated: use GetMinterOwnership instead! Will be removed in next release!",
+            "deprecated": true,
+            "type": "object",
+            "required": [
+              "minter"
+            ],
+            "properties": {
+              "minter": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "get_minter_ownership"
+            ],
+            "properties": {
+              "get_minter_ownership": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "get_creator_ownership"
+            ],
+            "properties": {
+              "get_creator_ownership": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "With MetaData Extension. Returns metadata about one particular token, based on *ERC721 Metadata JSON Schema* but directly from the contract",
+            "type": "object",
+            "required": [
+              "nft_info"
+            ],
+            "properties": {
+              "nft_info": {
+                "type": "object",
+                "required": [
+                  "token_id"
+                ],
+                "properties": {
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "get_nft_by_extension"
+            ],
+            "properties": {
+              "get_nft_by_extension": {
+                "type": "object",
+                "required": [
+                  "extension"
+                ],
+                "properties": {
+                  "extension": {
+                    "$ref": "#/definitions/ChipExtension"
+                  },
+                  "limit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0.0
+                  },
+                  "start_after": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "With MetaData Extension. Returns the result of both `NftInfo` and `OwnerOf` as one query as an optimization for clients",
+            "type": "object",
+            "required": [
+              "all_nft_info"
+            ],
+            "properties": {
+              "all_nft_info": {
+                "type": "object",
+                "required": [
+                  "token_id"
+                ],
+                "properties": {
+                  "include_expired": {
+                    "description": "unset or false will filter out expired approvals, you must set to true to see them",
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "With Enumerable extension. Returns all tokens owned by the given address, [] if unset.",
+            "type": "object",
+            "required": [
+              "tokens"
+            ],
+            "properties": {
+              "tokens": {
+                "type": "object",
+                "required": [
+                  "owner"
+                ],
+                "properties": {
+                  "limit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0.0
+                  },
+                  "owner": {
+                    "type": "string"
+                  },
+                  "start_after": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "With Enumerable extension. Requires pagination. Lists all token_ids controlled by the contract.",
+            "type": "object",
+            "required": [
+              "all_tokens"
+            ],
+            "properties": {
+              "all_tokens": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "uint32",
+                    "minimum": 0.0
+                  },
+                  "start_after": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Custom msg query. Default implementation returns an empty binary.",
+            "type": "object",
+            "required": [
+              "extension"
+            ],
+            "properties": {
+              "extension": {
+                "type": "object",
+                "required": [
+                  "msg"
+                ],
+                "properties": {
+                  "msg": {
+                    "$ref": "#/definitions/Empty"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "get_collection_extension"
+            ],
+            "properties": {
+              "get_collection_extension": {
+                "type": "object",
+                "properties": {
+                  "msg": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/CollectionExtension_for_RoyaltyInfo"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "get_withdraw_address"
+            ],
+            "properties": {
+              "get_withdraw_address": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Decimal": {
+        "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+        "type": "string"
+      },
+      "Empty": {
+        "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressible in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "HexBinary": {
+        "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+        "type": "string"
+      },
+      "IpiQueryMsg": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "issuance"
+            ],
+            "properties": {
+              "issuance": {
+                "type": "object",
+                "required": [
+                  "token_id"
+                ],
+                "properties": {
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "token_by_chip"
+            ],
+            "properties": {
+              "token_by_chip": {
+                "type": "object",
+                "required": [
+                  "chip_public_key"
+                ],
+                "properties": {
+                  "chip_public_key": {
+                    "$ref": "#/definitions/Binary"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "verify_chip"
+            ],
+            "properties": {
+              "verify_chip": {
+                "type": "object",
+                "required": [
+                  "nonce",
+                  "signature",
+                  "token_id"
+                ],
+                "properties": {
+                  "nonce": {
+                    "$ref": "#/definitions/HexBinary"
+                  },
+                  "signature": {
+                    "$ref": "#/definitions/Binary"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "protocol"
+            ],
+            "properties": {
+              "protocol": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "RoyaltyInfo": {
+        "type": "object",
+        "required": [
+          "payment_address",
+          "share"
+        ],
+        "properties": {
+          "payment_address": {
+            "$ref": "#/definitions/Addr"
+          },
+          "share": {
+            "$ref": "#/definitions/Decimal"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Timestamp": {
+        "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint64"
+          }
+        ]
+      },
+      "Uint64": {
+        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+        "type": "string"
+      }
+    }
+  },
+  "migrate": null,
+  "sudo": null,
+  "responses": {
+    "all_nft_info": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AllNftInfoResponse_for_ChipExtension",
+      "type": "object",
+      "required": [
+        "access",
+        "info"
+      ],
+      "properties": {
+        "access": {
+          "description": "Who can transfer the token",
+          "allOf": [
+            {
+              "$ref": "#/definitions/OwnerOfResponse"
+            }
+          ]
+        },
+        "info": {
+          "description": "Data on the token itself,",
+          "allOf": [
+            {
+              "$ref": "#/definitions/NftInfoResponse_for_ChipExtension"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "ChipExtension": {
+          "type": "object",
+          "required": [
+            "binding_sha256",
+            "chip_public_key",
+            "metadata_sha256",
+            "protocol"
+          ],
+          "properties": {
+            "binding_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "chip_public_key": {
+              "$ref": "#/definitions/Binary"
+            },
+            "metadata_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "HexBinary": {
+          "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "NftInfoResponse_for_ChipExtension": {
+          "type": "object",
+          "required": [
+            "extension"
+          ],
+          "properties": {
+            "extension": {
+              "description": "You can add any custom metadata here when you extend cw721-base",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ChipExtension"
+                }
+              ]
+            },
+            "token_uri": {
+              "description": "Universal resource identifier for this NFT Should point to a JSON file that conforms to the ERC721 Metadata JSON Schema",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "OwnerOfResponse": {
+          "type": "object",
+          "required": [
+            "approvals",
+            "owner"
+          ],
+          "properties": {
+            "approvals": {
+              "description": "If set this address is approved to transfer/send the token as well",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Approval"
+              }
+            },
+            "owner": {
+              "description": "Owner of the token",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "all_operators": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OperatorsResponse",
+      "type": "object",
+      "required": [
+        "operators"
+      ],
+      "properties": {
+        "operators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Approval"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "all_tokens": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TokensResponse",
+      "type": "object",
+      "required": [
+        "tokens"
+      ],
+      "properties": {
+        "tokens": {
+          "description": "Contains all token_ids in lexicographical ordering If there are more than `limit`, use `start_after` in future queries to achieve pagination.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ApprovalResponse",
+      "type": "object",
+      "required": [
+        "approval"
+      ],
+      "properties": {
+        "approval": {
+          "$ref": "#/definitions/Approval"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "approvals": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ApprovalsResponse",
+      "type": "object",
+      "required": [
+        "approvals"
+      ],
+      "properties": {
+        "approvals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Approval"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "contract_info": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CollectionInfoAndExtensionResponse_for_Nullable_CollectionExtension_for_RoyaltyInfo",
+      "description": "This is a wrapper around CollectionInfo that includes the extension.",
+      "type": "object",
+      "required": [
+        "name",
+        "symbol",
+        "updated_at"
+      ],
+      "properties": {
+        "extension": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CollectionExtension_for_RoyaltyInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "updated_at": {
+          "$ref": "#/definitions/Timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "CollectionExtension_for_RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "description",
+            "image"
+          ],
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "explicit_content": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "external_link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "image": {
+              "type": "string"
+            },
+            "royalty_info": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/RoyaltyInfo"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "start_trading_time": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        },
+        "RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "payment_address",
+            "share"
+          ],
+          "properties": {
+            "payment_address": {
+              "$ref": "#/definitions/Addr"
+            },
+            "share": {
+              "$ref": "#/definitions/Decimal"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "extension": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Null",
+      "type": "null"
+    },
+    "get_all_info": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AllInfoResponse",
+      "description": "This is a wrapper around CollectionInfo that includes the extension, contract info, and number of tokens (supply).",
+      "type": "object",
+      "required": [
+        "collection_extension",
+        "collection_info",
+        "contract_info",
+        "num_tokens"
+      ],
+      "properties": {
+        "collection_extension": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Attribute"
+          }
+        },
+        "collection_info": {
+          "$ref": "#/definitions/CollectionInfo"
+        },
+        "contract_info": {
+          "$ref": "#/definitions/ContractInfoResponse"
+        },
+        "num_tokens": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Attribute": {
+          "type": "object",
+          "required": [
+            "key",
+            "value"
+          ],
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "CollectionInfo": {
+          "type": "object",
+          "required": [
+            "name",
+            "symbol",
+            "updated_at"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "symbol": {
+              "type": "string"
+            },
+            "updated_at": {
+              "$ref": "#/definitions/Timestamp"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ContractInfoResponse": {
+          "type": "object",
+          "required": [
+            "code_id",
+            "creator",
+            "pinned"
+          ],
+          "properties": {
+            "admin": {
+              "description": "admin who can run migrations (if any)",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "code_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "creator": {
+              "description": "address that instantiated this contract",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "ibc_port": {
+              "description": "set if this contract has bound an IBC port",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pinned": {
+              "description": "if set, the contract is pinned to the cache, and thus uses less gas when called",
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "get_collection_extension": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Null",
+      "type": "null"
+    },
+    "get_collection_extension_attributes": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Array_of_Attribute",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Attribute"
+      },
+      "definitions": {
+        "Attribute": {
+          "type": "object",
+          "required": [
+            "key",
+            "value"
+          ],
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        }
+      }
+    },
+    "get_collection_info_and_extension": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CollectionInfoAndExtensionResponse_for_Nullable_CollectionExtension_for_RoyaltyInfo",
+      "description": "This is a wrapper around CollectionInfo that includes the extension.",
+      "type": "object",
+      "required": [
+        "name",
+        "symbol",
+        "updated_at"
+      ],
+      "properties": {
+        "extension": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CollectionExtension_for_RoyaltyInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "updated_at": {
+          "$ref": "#/definitions/Timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "CollectionExtension_for_RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "description",
+            "image"
+          ],
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "explicit_content": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "external_link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "image": {
+              "type": "string"
+            },
+            "royalty_info": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/RoyaltyInfo"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "start_trading_time": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        },
+        "RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "payment_address",
+            "share"
+          ],
+          "properties": {
+            "payment_address": {
+              "$ref": "#/definitions/Addr"
+            },
+            "share": {
+              "$ref": "#/definitions/Decimal"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "get_config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ConfigResponse_for_Nullable_CollectionExtension_for_RoyaltyInfo",
+      "description": "This is a wrapper around CollectionInfo that includes the extension.",
+      "type": "object",
+      "required": [
+        "collection_info",
+        "contract_info",
+        "creator_ownership",
+        "minter_ownership",
+        "num_tokens"
+      ],
+      "properties": {
+        "collection_extension": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CollectionExtension_for_RoyaltyInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "collection_info": {
+          "$ref": "#/definitions/CollectionInfo"
+        },
+        "contract_info": {
+          "$ref": "#/definitions/ContractInfoResponse"
+        },
+        "creator_ownership": {
+          "$ref": "#/definitions/Ownership_for_Addr"
+        },
+        "minter_ownership": {
+          "$ref": "#/definitions/Ownership_for_Addr"
+        },
+        "num_tokens": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "withdraw_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "CollectionExtension_for_RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "description",
+            "image"
+          ],
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "explicit_content": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "external_link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "image": {
+              "type": "string"
+            },
+            "royalty_info": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/RoyaltyInfo"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "start_trading_time": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "CollectionInfo": {
+          "type": "object",
+          "required": [
+            "name",
+            "symbol",
+            "updated_at"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "symbol": {
+              "type": "string"
+            },
+            "updated_at": {
+              "$ref": "#/definitions/Timestamp"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ContractInfoResponse": {
+          "type": "object",
+          "required": [
+            "code_id",
+            "creator",
+            "pinned"
+          ],
+          "properties": {
+            "admin": {
+              "description": "admin who can run migrations (if any)",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "code_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "creator": {
+              "description": "address that instantiated this contract",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            },
+            "ibc_port": {
+              "description": "set if this contract has bound an IBC port",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pinned": {
+              "description": "if set, the contract is pinned to the cache, and thus uses less gas when called",
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Ownership_for_Addr": {
+          "description": "The contract's ownership info",
+          "type": "object",
+          "properties": {
+            "owner": {
+              "description": "The contract's current owner. `None` if the ownership has been renounced.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pending_expiry": {
+              "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pending_owner": {
+              "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "RoyaltyInfo": {
+          "type": "object",
+          "required": [
+            "payment_address",
+            "share"
+          ],
+          "properties": {
+            "payment_address": {
+              "$ref": "#/definitions/Addr"
+            },
+            "share": {
+              "$ref": "#/definitions/Decimal"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "get_creator_ownership": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ownership_for_Addr",
+      "description": "The contract's ownership info",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The contract's current owner. `None` if the ownership has been renounced.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_expiry": {
+          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_owner": {
+          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "get_minter_ownership": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ownership_for_Addr",
+      "description": "The contract's ownership info",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The contract's current owner. `None` if the ownership has been renounced.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_expiry": {
+          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_owner": {
+          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "get_nft_by_extension": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Nullable_NftInfoResponse_for_ChipExtension",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/NftInfoResponse_for_ChipExtension"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "definitions": {
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "ChipExtension": {
+          "type": "object",
+          "required": [
+            "binding_sha256",
+            "chip_public_key",
+            "metadata_sha256",
+            "protocol"
+          ],
+          "properties": {
+            "binding_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "chip_public_key": {
+              "$ref": "#/definitions/Binary"
+            },
+            "metadata_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "HexBinary": {
+          "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "NftInfoResponse_for_ChipExtension": {
+          "type": "object",
+          "required": [
+            "extension"
+          ],
+          "properties": {
+            "extension": {
+              "description": "You can add any custom metadata here when you extend cw721-base",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ChipExtension"
+                }
+              ]
+            },
+            "token_uri": {
+              "description": "Universal resource identifier for this NFT Should point to a JSON file that conforms to the ERC721 Metadata JSON Schema",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "get_withdraw_address": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Nullable_String",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issuance": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Issuance",
+      "type": "object",
+      "required": [
+        "burned",
+        "extension",
+        "initial_owner",
+        "issuer",
+        "minted_height",
+        "token_id",
+        "token_uri"
+      ],
+      "properties": {
+        "burned": {
+          "type": "boolean"
+        },
+        "extension": {
+          "$ref": "#/definitions/ChipExtension"
+        },
+        "initial_owner": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "minted_height": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "token_id": {
+          "type": "string"
+        },
+        "token_uri": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "ChipExtension": {
+          "type": "object",
+          "required": [
+            "binding_sha256",
+            "chip_public_key",
+            "metadata_sha256",
+            "protocol"
+          ],
+          "properties": {
+            "binding_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "chip_public_key": {
+              "$ref": "#/definitions/Binary"
+            },
+            "metadata_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "HexBinary": {
+          "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        }
+      }
+    },
+    "minter": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MinterResponse",
+      "description": "Deprecated: use Cw721QueryMsg::GetMinterOwnership instead! Shows who can mint these tokens.",
+      "type": "object",
+      "properties": {
+        "minter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "nft_info": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NftInfoResponse_for_ChipExtension",
+      "type": "object",
+      "required": [
+        "extension"
+      ],
+      "properties": {
+        "extension": {
+          "description": "You can add any custom metadata here when you extend cw721-base",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ChipExtension"
+            }
+          ]
+        },
+        "token_uri": {
+          "description": "Universal resource identifier for this NFT Should point to a JSON file that conforms to the ERC721 Metadata JSON Schema",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "ChipExtension": {
+          "type": "object",
+          "required": [
+            "binding_sha256",
+            "chip_public_key",
+            "metadata_sha256",
+            "protocol"
+          ],
+          "properties": {
+            "binding_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "chip_public_key": {
+              "$ref": "#/definitions/Binary"
+            },
+            "metadata_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "HexBinary": {
+          "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        }
+      }
+    },
+    "num_tokens": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NumTokensResponse",
+      "type": "object",
+      "required": [
+        "count"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "operator": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OperatorResponse",
+      "type": "object",
+      "required": [
+        "approval"
+      ],
+      "properties": {
+        "approval": {
+          "$ref": "#/definitions/Approval"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "owner_of": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OwnerOfResponse",
+      "type": "object",
+      "required": [
+        "approvals",
+        "owner"
+      ],
+      "properties": {
+        "approvals": {
+          "description": "If set this address is approved to transfer/send the token as well",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Approval"
+          }
+        },
+        "owner": {
+          "description": "Owner of the token",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Approval": {
+          "type": "object",
+          "required": [
+            "expires",
+            "spender"
+          ],
+          "properties": {
+            "expires": {
+              "description": "When the Approval expires (maybe Expiration::never)",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                }
+              ]
+            },
+            "spender": {
+              "description": "Account that can transfer/send the token",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Addr"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "ownership": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ownership_for_Addr",
+      "description": "The contract's ownership info",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "description": "The contract's current owner. `None` if the ownership has been renounced.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_expiry": {
+          "description": "The deadline for the pending owner to accept the ownership. `None` if there isn't a pending ownership transfer, or if a transfer exists and it doesn't have a deadline.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_owner": {
+          "description": "The account who has been proposed to take over the ownership. `None` if there isn't a pending ownership transfer.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Expiration": {
+          "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+          "oneOf": [
+            {
+              "description": "AtHeight will expire when `env.block.height` >= height",
+              "type": "object",
+              "required": [
+                "at_height"
+              ],
+              "properties": {
+                "at_height": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "AtTime will expire when `env.block.time` >= time",
+              "type": "object",
+              "required": [
+                "at_time"
+              ],
+              "properties": {
+                "at_time": {
+                  "$ref": "#/definitions/Timestamp"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Never will never expire. Used to express the empty variant",
+              "type": "object",
+              "required": [
+                "never"
+              ],
+              "properties": {
+                "never": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "Timestamp": {
+          "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Uint64"
+            }
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
+          "type": "string"
+        }
+      }
+    },
+    "protocol": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProtocolResponse",
+      "type": "object",
+      "required": [
+        "chain_id",
+        "contract",
+        "proof_protocol",
+        "version"
+      ],
+      "properties": {
+        "chain_id": {
+          "type": "string"
+        },
+        "contract": {
+          "type": "string"
+        },
+        "proof_protocol": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "token_by_chip": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Issuance",
+      "type": "object",
+      "required": [
+        "burned",
+        "extension",
+        "initial_owner",
+        "issuer",
+        "minted_height",
+        "token_id",
+        "token_uri"
+      ],
+      "properties": {
+        "burned": {
+          "type": "boolean"
+        },
+        "extension": {
+          "$ref": "#/definitions/ChipExtension"
+        },
+        "initial_owner": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "minted_height": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "token_id": {
+          "type": "string"
+        },
+        "token_uri": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Binary": {
+          "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "ChipExtension": {
+          "type": "object",
+          "required": [
+            "binding_sha256",
+            "chip_public_key",
+            "metadata_sha256",
+            "protocol"
+          ],
+          "properties": {
+            "binding_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "chip_public_key": {
+              "$ref": "#/definitions/Binary"
+            },
+            "metadata_sha256": {
+              "$ref": "#/definitions/HexBinary"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "HexBinary": {
+          "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        }
+      }
+    },
+    "tokens": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TokensResponse",
+      "type": "object",
+      "required": [
+        "tokens"
+      ],
+      "properties": {
+        "tokens": {
+          "description": "Contains all token_ids in lexicographical ordering If there are more than `limit`, use `start_after` in future queries to achieve pagination.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "verify_chip": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProofResponse",
+      "type": "object",
+      "required": [
+        "burned",
+        "valid"
+      ],
+      "properties": {
+        "burned": {
+          "type": "boolean"
+        },
+        "valid": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nullable_NftInfoResponse_for_ChipExtension",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/NftInfoResponse_for_ChipExtension"
+    },
+    {
+      "type": "null"
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "ChipExtension": {
+      "type": "object",
+      "required": [
+        "binding_sha256",
+        "chip_public_key",
+        "metadata_sha256",
+        "protocol"
+      ],
+      "properties": {
+        "binding_sha256": {
+          "$ref": "#/definitions/HexBinary"
+        },
+        "chip_public_key": {
+          "$ref": "#/definitions/Binary"
+        },
+        "metadata_sha256": {
+          "$ref": "#/definitions/HexBinary"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HexBinary": {
+      "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "NftInfoResponse_for_ChipExtension": {
+      "type": "object",
+      "required": [
+        "extension"
+      ],
+      "properties": {
+        "extension": {
+          "description": "You can add any custom metadata here when you extend cw721-base",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ChipExtension"
+            }
+          ]
+        },
+        "token_uri": {
+          "description": "Universal resource identifier for this NFT Should point to a JSON file that conforms to the ERC721 Metadata JSON Schema",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
