@@ -1,6 +1,6 @@
 # Deploy and issue on IPI
 
-This guide targets **`ipi-testnet-1`**. Run commands in the repository root using **Bash**. No mainnet or live NFT collection is preconfigured. `deployments/ipi-testnet-1.template.json` intentionally contains `null` fields and cannot pass SDK validation.
+This guide targets **`ipi-testnet-1`**. Run commands in the repository root using **Bash**. A [verified testnet collection](../deployments/ipi-testnet-1.release.md) is recorded; the steps below describe creating another deployment. No mainnet collection is configured. `deployments/ipi-testnet-1.template.json` intentionally contains `null` fields and cannot pass SDK validation.
 
 The native IPI node executable and keyring must handle signing. The local IPI wallet integration uses `/cosmos.evm.crypto.v1.ethsecp256k1.PubKey`, Ethereum-derived account addresses and Keccak-based signing. A generic Cosmos mnemonic signer is not a drop-in substitute. The NFT chip key is a separate identity key and must never be used as the issuer's account key.
 

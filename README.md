@@ -24,7 +24,7 @@ A reader authenticates an item by sending a fresh random challenge. The chip sig
 
 The contract implements CW721 ownership, transfers, approvals, receiver callbacks, enumeration and burning. No separate web application is required.
 
-> **Release status:** v0.1.0 is a deployment candidate targeting `ipi-testnet-1`. This repository contains the contract, tested Wasm build, SDK and CLI. A live collection has **not** been recorded. Java Card applet provisioning and the **NFT Station** tab in `ipi-pokedex` are the next integration phase; they are not implemented here.
+> **Release status:** v0.1.0 has a [verified testnet deployment](deployments/ipi-testnet-1.release.md) on `ipi-testnet-1`. The contract, Wasm, SDK and CLI are available, but the release has not been independently audited. Java Card applet provisioning and the **NFT Station** tab in `ipi-pokedex` are the next integration phase; they are not implemented here.
 
 ## The system at a glance
 
@@ -116,17 +116,17 @@ Complete commands, recovery rules and deployment configuration are in [DEPLOYMEN
 import { IpiNftClient, compactSignature } from "./dist/sdk/index.js";
 
 const client = new IpiNftClient(verifiedDeployment);
-const token = await client.authenticateChip("item-1", async ({ nonce, bindingHash }) => {
+const token = await client.authenticateChip("item-1", async ({ nonce, bindingHash, signal }) => {
   // Your qualified applet checks the binding and signs:
   // IPI_NFT_PROOF_V1\0 || storedBindingHash || nonce
-  const der = await card.prove({ nonce, bindingHash });
+  const der = await card.prove({ nonce, bindingHash, signal });
   return compactSignature(der, "der");
 });
 
 console.log(token.owner); // Owner observed on IPI after authentication
 ```
 
-`verifiedDeployment` is an operator-approved record containing `chainId`, `rest`, `collection`, `codeId` and `wasmSha256`. `card.prove` is the transport adapter supplied by the future hardware integration, not a function included in this SDK. The adapter must check the chip's locked binding against the supplied hash.
+`verifiedDeployment` is an operator-approved record containing `chainId`, `rest`, `collection`, `codeId` and `wasmSha256`. `card.prove` is the transport adapter supplied by the future hardware integration, not a function included in this SDK. The adapter must check the chip's locked binding against the supplied hash and honor the abort signal.
 
 The reader generates a random 32-byte nonce, permits one verification attempt and expires the challenge after 30 seconds. It checks chain status again after the card responds. REST queries rely on the configured trusted node; this SDK is not a light client.
 
@@ -151,7 +151,7 @@ sdk/               TypeScript protocol, trusted-node client and CLI
 tests/             SDK, reader and CLI tests
 protocol/          Shared Rust/TypeScript proof vector (test key only)
 schema/            Generated contract JSON schemas
-deployments/       Explicit, initially unconfigured testnet template
+deployments/       Verified testnet record, release note and unconfigured template
 tools/wasm-tests/  Tests that execute the optimized artifact in CosmWasm VM
 scripts/           Pinned builds, Rust checks and release manifest
 docs/              Deployment, hardware protocol, review and project artwork
@@ -169,7 +169,7 @@ npm run build:contract  # Optimize, validate, execute Wasm and write its manifes
 npm run nft -- help
 ```
 
-Test coverage includes permission failures, modified mint commitments, cross-chain and cross-collection replay, canonical signatures, burn tombstones, CW721 approvals and receiver behavior, challenge replay/expiry, deployment mismatch, metadata tampering and CLI file protection. Hardware qualification and a live IPI deployment remain separate integration checks.
+Test coverage includes permission failures, modified mint commitments, cross-chain and cross-collection replay, canonical signatures, burn tombstones, CW721 approvals and receiver behavior, challenge replay/expiry, deployment mismatch, metadata tampering and CLI file protection. Hardware qualification remains a separate integration check; the recorded testnet deployment is not a mainnet certification.
 
 ## License and provenance
 

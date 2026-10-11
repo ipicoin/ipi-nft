@@ -25,6 +25,8 @@ Sources queried directly:
 
 A read of existing code ID `2` confirmed the standard REST response shape (`code_info` plus base64 `data`) and matching advertised/downloaded SHA-256. **That code is unrelated to this NFT release and must not be used as its code ID.** The SDK validates both advertised code identity and the actual downloaded bytes. Its code-response bound is 4 MiB to accommodate base64 expansion of the release artifact; ordinary JSON responses remain bounded to 1 MiB.
 
-The local optimized contract was accepted and exercised by CosmWasm VM **2.3.4**, the same version reported by the node. This establishes a useful compatibility baseline. Successful upload/instantiate transactions and a subsequent approved deployment record are still required to establish a deployed NFT collection.
+The local optimized contract was accepted and exercised by CosmWasm VM **2.3.4**, the same version reported by the node. This establishes a useful compatibility baseline. At the time of these checks, successful upload/instantiate transactions and a subsequent approved deployment record were still required to establish a deployed NFT collection.
 
 No funds were spent, no transaction was signed/broadcast and no card was provisioned during these checks. `deployments/ipi-testnet-1.template.json` remains deliberately unconfigured. Recheck permissions, gas policy, runtime version and node synchronization immediately before deployment.
+
+Follow-up on **2026-10-11**: the public collection and code ID in [the deployment record](../deployments/ipi-testnet-1.json) were checked against the live REST node. The advertised and downloaded Wasm hashes matched the release artifact; both deployment transactions were confirmed successful, and the minter matched the [release note](../deployments/ipi-testnet-1.release.md). This does not certify hardware or guarantee future node availability.

@@ -1,6 +1,6 @@
 # Security model
 
-IPI NFT v0.1.0 is a tested deployment candidate, not an independently audited release. Its guarantees depend on the contract, approved deployment, provisioning process and reader together.
+IPI NFT v0.1.0 is deployed on testnet, not independently audited. Its guarantees depend on the contract, approved deployment, provisioning process and reader together.
 
 ## Trust boundaries
 
@@ -34,7 +34,7 @@ All software signing keys in this repository appear only in test code. The share
 
 ## Reader and content protections
 
-A static public key, UID or earlier signature is not proof of current possession. Readers generate independent 32-byte random challenges, bind proofs to the expected NFT, allow one attempt and enforce a timeout. The SDK rechecks state after the exchange and rejects burned NFTs. A query result is an observation of state, not a perpetual guarantee that ownership cannot change immediately afterward.
+A static public key, UID or earlier signature is not proof of current possession. Readers generate independent 32-byte random challenges, bind proofs to the expected NFT, allow one attempt and enforce a timeout. The SDK rejects stalled card exchanges after 30 seconds and provides an abort signal to the transport; the adapter must honor it to cancel physical I/O. The SDK rechecks state after the exchange and rejects burned NFTs. A query result is an observation of state, not a perpetual guarantee that ownership cannot change immediately afterward.
 
 The challenge-response protocol does not defeat relaying to a real remote chip. It does not detect removal of a genuine chip from its original enclosure. Tamper-resistant physical integration and any proximity/anti-relay requirements need separate engineering.
 
@@ -43,6 +43,8 @@ Metadata and images remain untrusted content after their hashes match: hashing e
 ## Build and transaction discipline
 
 Dependencies are locked; the release optimizer is pinned by digest and architecture. Builds remove any prior release manifest, verify lock/source stability, execute the produced Wasm in a VM and record the artifact/source hashes only after success. CI checks schema drift, contract tests and SDK tests. Run-time native crypto belongs to CosmWasm/wasmvm; operators must track the chain's own security updates as well as this repository's dependencies.
+
+As of 2026-10-11, [CosmWasm upstream support](https://github.com/CosmWasm/advisories) for the 2.3.x branch ended on 2026-09-30. The testnet's recorded runtime and this contract use that branch. This is a maintenance risk, not evidence of a known exploit. Coordinate a supported chain runtime before production use. The deployed no-admin collection cannot be migrated in place, and a replacement collection has a different chip binding; plan the reader and hardware transition before issuing items. A Git push or SDK update cannot patch already-deployed Wasm.
 
 The SDK/CLI does not hold account mnemonics or broadcast transactions. Signing is delegated to the native IPI binary because IPI account signing differs from standard Cosmos signing. Verify committed transaction height and successful execution code. An accepted mempool transaction, timeout or network error is not a completed mint. Preserve the issuance journal and reconcile unknown outcomes before resubmission.
 

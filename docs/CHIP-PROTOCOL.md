@@ -101,7 +101,7 @@ Use a separate NFT profile in Pokédex; a generic wallet applet with export/rese
 3. Load the issuance and current owner. Reject unknown or burned identities. Recompute the binding.
 4. Check the card's advertised public key and locked binding against that record.
 5. Generate a new random 32-byte challenge **in the reader**. Keep it private to the current attempt until transmission; do not reuse or accept a card-selected nonce.
-6. Ask the chip for a proof, normalize its DER signature and verify against the on-chain key and binding. Permit one attempt and apply a short timeout.
+6. Ask the chip for a proof, normalize its DER signature and verify against the on-chain key and binding. Permit one attempt and apply a short timeout; the transport must honor the SDK's abort signal to stop a stalled exchange.
 7. Recheck chain status after the exchange. Display the observed owner separately from physical authenticity.
 
 The SDK implements steps 2, 3, 5, 6 and 7. The card transport implements steps 4 and the APDU exchange. `ChipChallenge` snapshots its inputs, returns defensive copies, defaults to a 30-second lifetime and consumes the challenge even on a failed verification attempt. The on-chain `verify_chip` query cannot enforce freshness; it returns a mathematical result for whatever nonce the caller supplied.

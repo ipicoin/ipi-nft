@@ -75,6 +75,16 @@ test("burn before or during chip authentication is rejected", async () => {
   await assert.rejects(f.client.authenticateChip(v.binding.tokenId, async ({ message }) => { f.state.issuance.burned = true; return sign(message); }), /changed/);
 });
 
+test("stalled card exchange times out and signals the transport to stop", async () => {
+  const f = fixture();
+  let signal: AbortSignal | undefined;
+  await assert.rejects(f.client.authenticateChip(v.binding.tokenId, async request => {
+    signal = request.signal;
+    return new Promise<Uint8Array>(() => {});
+  }, 25), /timed out/);
+  assert.equal(signal?.aborted, true);
+});
+
 test("corrupt chain metadata and copied mint proof fail authentication", async () => {
   const f = fixture();
   await assert.rejects(f.client.authenticateChip(v.binding.tokenId, async () => bytes(v.signatureCompact)), /authentication failed/);
