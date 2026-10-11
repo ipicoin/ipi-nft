@@ -12,3 +12,7 @@ data/
 *.key
 *.tsbuildinfo
 .DS_Store
+AGENTS.md
+.agents/
+.aws/
+.codex/

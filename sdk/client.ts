@@ -101,11 +101,27 @@ export class IpiNftClient {
     const owner = issuance.burned ? null : address((await this.query({ owner_of: { token_id: id } })).owner, "token owner");
     return { ...binding, publicKey, owner, burned: issuance.burned, issuer: address(issuance.issuer, "issuer"), initialOwner: address(issuance.initial_owner, "initial owner") };
   }
-  async authenticateChip(id: string, exchange: (request: { nonce: Uint8Array; bindingHash: Uint8Array; message: Uint8Array }) => Promise<Uint8Array>): Promise<Token> {
+  async authenticateChip(id: string, exchange: (request: { nonce: Uint8Array; bindingHash: Uint8Array; message: Uint8Array; signal: AbortSignal }) => Promise<Uint8Array>, ttlMs = 30_000): Promise<Token> {
     const token = await this.getToken(id);
     if (token.burned) throw new Error("NFT was burned");
-    const challenge = new ChipChallenge(token, token.publicKey);
-    const signature = await exchange({ nonce: challenge.nonce, bindingHash: bindingHash(token), message: challenge.message });
+    const challenge = new ChipChallenge(token, token.publicKey, ttlMs);
+    const controller = new AbortController();
+    let onTimeout = () => {};
+    const timedOut = new Promise<never>((_, reject) => {
+      onTimeout = () => reject(new Error("Chip authentication timed out"));
+      controller.signal.addEventListener("abort", onTimeout, { once: true });
+    });
+    const timer = setTimeout(() => controller.abort(), ttlMs);
+    let signature: Uint8Array;
+    try {
+      signature = await Promise.race([
+        Promise.resolve().then(() => exchange({ nonce: challenge.nonce, bindingHash: bindingHash(token), message: challenge.message, signal: controller.signal })),
+        timedOut,
+      ]);
+    } finally {
+      clearTimeout(timer);
+      controller.signal.removeEventListener("abort", onTimeout);
+    }
     if (!challenge.verify(signature)) throw new Error("Chip authentication failed or challenge expired");
     // A burn or deployment change during reader interaction must fail closed.
     const current = await this.getToken(id);

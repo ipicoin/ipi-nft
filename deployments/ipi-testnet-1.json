@@ -1,0 +1,12 @@
+{
+  "chainId": "ipi-testnet-1",
+  "rest": "https://rest-testnet.ipi.io",
+  "collection": "ipi1xsmqvl8lqr2uwl50aetu0572rss9hrza5kddpfj9ky3jq80fv2tsx04z2g",
+  "codeId": "4",
+  "wasmSha256": "05e8fb6d8e5600daaba02c03b5f59d28f587b125176a2925db401f7ac38b1f05",
+  "minter": "ipi1qujhma0nl02e98tj823r6c3vx5sxpx36relq27",
+  "admin": null,
+  "storeTxHash": "C56DBD9DF68E1D1BEC5D050BF6B64A46765CA3CC79E18258EC7A25149E836CB9",
+  "instantiateTxHash": "B6F1200745AD2C1D84160C2EA9A6B3A958B7E39455F2375A39424711AAF0D583",
+  "gitRevision": "b7cfab63a6592d3ecd00ba83e1d9eb139c2f53ea"
+}
