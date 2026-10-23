@@ -1,26 +1,119 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
   <title id="title">IPI NFT — Physical objects. Cryptographic identity.</title>
-  <desc id="desc">A secure chip connected to an NFT on the IPI blockchain.</desc>
+  <desc id="desc">An IPI secure chip glows blue and cyan against a dark server-inspired background with magenta light trails. Open-source CW721 contract on IPI.</desc>
   <defs>
-    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07151f"/><stop offset="1" stop-color="#142c3b"/></linearGradient>
-    <linearGradient id="chip" x2="1" y2="1"><stop stop-color="#8affe0"/><stop offset="1" stop-color="#58b9ff"/></linearGradient>
-    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#8affe0" stroke-opacity=".055"/></pattern>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#0e2350"/>
+      <stop offset=".5" stop-color="#080f25"/>
+      <stop offset="1" stop-color="#040916"/>
+    </linearGradient>
+    <radialGradient id="blue-halo">
+      <stop stop-color="#0867ed" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#0867ed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="magenta-halo">
+      <stop stop-color="#dd26f0" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#dd26f0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="neon" x2="1" y2="1">
+      <stop stop-color="#c3efff"/>
+      <stop offset=".46" stop-color="#54b8ff"/>
+      <stop offset="1" stop-color="#4665ed"/>
+    </linearGradient>
+    <linearGradient id="chip-face" x2="1" y2="1">
+      <stop stop-color="#193d74"/>
+      <stop offset=".55" stop-color="#102347"/>
+      <stop offset="1" stop-color="#08142c"/>
+    </linearGradient>
+    <linearGradient id="accent" x2="1">
+      <stop stop-color="#73d6ff"/>
+      <stop offset=".62" stop-color="#4089ff"/>
+      <stop offset="1" stop-color="#e344ee"/>
+    </linearGradient>
+    <linearGradient id="fade" x2="1">
+      <stop stop-color="#50bcff" stop-opacity="0"/>
+      <stop offset=".65" stop-color="#50bcff" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#cb55ff" stop-opacity=".5"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#6aa9ff" stroke-opacity=".055"/>
+    </pattern>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <clipPath id="frame"><rect width="1440" height="480" rx="24"/></clipPath>
+    <g id="chip-pins" fill="url(#neon)">
+      <rect x="-74" y="-142" width="13" height="30" rx="3"/>
+      <rect x="-39" y="-142" width="13" height="30" rx="3"/>
+      <rect x="-6" y="-142" width="13" height="30" rx="3"/>
+      <rect x="28" y="-142" width="13" height="30" rx="3"/>
+      <rect x="63" y="-142" width="13" height="30" rx="3"/>
+    </g>
+    <path id="ipi-emblem" fill-rule="evenodd" d="M161 15C185 15 205 35 205 58 205 73 197 87 184 99L227 138 235 130C252 113 279 114 296 131 312 148 312 175 295 192 278 209 252 209 235 192L227 184 185 226 198 239C205 246 205 258 198 264 191 272 179 272 172 264L161 253 148 266C141 273 129 273 122 266 115 259 115 247 122 240L138 225 97 184 88 192C71 209 44 209 27 192 10 175 10 148 27 131 44 114 71 114 88 131L97 139 139 97 101 58 131 28C139 20 150 15 161 15ZM146 58 161 73 169 65C176 58 173 47 164 46 158 45 153 51 146 58ZM161 119 119 161 161 203 203 161ZM57 150C44 150 44 173 57 173 62 173 68 167 74 161 68 155 63 150 57 150ZM265 150C259 150 255 155 249 161 255 167 260 173 265 173 280 173 280 150 265 150Z"/>
   </defs>
-  <rect width="1200" height="340" rx="22" fill="url(#bg)"/>
-  <rect width="1200" height="340" rx="22" fill="url(#grid)"/>
-  <g font-family="system-ui,Segoe UI,sans-serif">
-    <text x="64" y="84" fill="#8affe0" font-size="15" letter-spacing="4">IPI · COSMOS · CW721</text>
-    <text x="60" y="165" fill="#f1f7fa" font-size="70" font-weight="750" letter-spacing="-2">IPI NFT</text>
-    <text x="64" y="219" fill="#e0ebf2" font-size="25">Physical objects. Cryptographic identity.</text>
-    <text x="64" y="272" fill="#94adbd" font-size="17">Keys stay in the chip. Ownership lives on IPI.</text>
-  </g>
-  <g transform="translate(854 112)" fill="none" stroke="url(#chip)" stroke-width="3">
-    <path d="M0 14L82-34l82 48v96l-82 48L0 110Z" opacity=".32"/>
-    <rect x="36" y="15" width="92" height="92" rx="17" fill="#102d3a"/>
-    <rect x="54" y="33" width="56" height="56" rx="10"/>
-    <path d="M56 1v14m26-14v14m26-14v14M56 107v14m26-14v14m26-14v14M22 35h14M22 61h14M22 87h14m92-52h14m-14 26h14m-14 26h14"/>
-    <path d="M67 61l10 10 22-24" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M-50 61h50m164 0h50" stroke-dasharray="4 7" opacity=".7"/>
-    <circle cx="-60" cy="61" r="8"/><circle cx="224" cy="61" r="8"/>
+
+  <g clip-path="url(#frame)">
+    <rect width="1440" height="480" fill="url(#background)"/>
+    <rect width="1440" height="480" fill="url(#grid)"/>
+    <ellipse cx="1122" cy="210" rx="450" ry="370" fill="url(#blue-halo)"/>
+    <ellipse cx="1440" cy="420" rx="400" ry="330" fill="url(#magenta-halo)"/>
+
+    <!-- Light rails echo the server-room artwork without external image dependencies. -->
+    <g fill="none" stroke-linecap="round">
+      <path d="M1288-30V112l72 72v320" stroke="#2c70ed" stroke-opacity=".22" stroke-width="22"/>
+      <path d="M1288-30V112l72 72v320" stroke="#53beff" stroke-opacity=".55" stroke-width="2"/>
+      <path d="M1390-20v170l-26 26" stroke="#e44af5" stroke-opacity=".5" stroke-width="5" filter="url(#glow)"/>
+      <path d="M1390-20v170l-26 26" stroke="#f574ff" stroke-opacity=".72" stroke-width="2"/>
+      <path d="M798 480v-62l66-66h104M742 0v59l81 81h129" stroke="url(#fade)" stroke-width="2"/>
+      <path d="M889 0v63l56 56M1440 346h-82l-41-41h-85" stroke="#b44dff" stroke-opacity=".25" stroke-width="2"/>
+      <path d="M914 480v-51l40-40h96" stroke="#58baff" stroke-opacity=".3" stroke-width="2"/>
+    </g>
+
+    <g font-family="Arial,Helvetica,sans-serif">
+      <rect x="72" y="65" width="7" height="16" rx="3" fill="#6bd2ff"/>
+      <text x="94" y="79" fill="#9ddcff" font-size="15" font-weight="700" letter-spacing="3">IPI / OPEN SOURCE / CW721</text>
+      <text x="67" y="209" fill="#f3f8ff" font-size="106" font-weight="700" letter-spacing="-5">IPI NFT</text>
+      <rect x="73" y="239" width="80" height="4" rx="2" fill="url(#accent)"/>
+      <text x="72" y="291" fill="#d9e9ff" font-size="29">Physical objects. Cryptographic identity.</text>
+      <text x="73" y="334" fill="#93adce" font-size="19">Keys stay in the chip. Ownership lives on IPI.</text>
+      <g font-family="monospace" font-size="13" letter-spacing="1.5">
+        <rect x="72" y="384" width="142" height="31" rx="6" fill="#152c52" stroke="#365d8b"/>
+        <text x="89" y="404" fill="#a2dbff">secp256k1</text>
+        <circle cx="242" cy="399" r="3" fill="#b26eea"/>
+        <text x="261" y="404" fill="#8aa5c9">ONE OBJECT. A LASTING IDENTITY.</text>
+      </g>
+    </g>
+
+    <!-- The layered chip and interlaced IPI emblem match the supplied chip icon. -->
+    <g transform="translate(1110 231)">
+      <path d="M-168-176H137l38 38v275l-38 38h-275l-38-38v-275Z" fill="#040c1e" fill-opacity=".6" stroke="#448dff" stroke-opacity=".35" stroke-width="2"/>
+      <rect x="-154" y="-154" width="308" height="308" rx="49" fill="none" stroke="#2473f0" stroke-width="8" opacity=".55" filter="url(#glow)"/>
+      <rect x="-154" y="-154" width="308" height="308" rx="49" fill="#0b2045" stroke="url(#neon)" stroke-width="5"/>
+      <rect x="-139" y="-139" width="278" height="278" rx="36" fill="none" stroke="#3585e8" stroke-width="2"/>
+      <use href="#chip-pins"/>
+      <use href="#chip-pins" transform="rotate(90)"/>
+      <use href="#chip-pins" transform="rotate(180)"/>
+      <use href="#chip-pins" transform="rotate(270)"/>
+      <rect x="-113" y="-113" width="226" height="226" rx="32" fill="url(#chip-face)" stroke="#83c6ff" stroke-width="3"/>
+      <rect x="-100" y="-100" width="200" height="200" rx="25" fill="none" stroke="#071329" stroke-width="4"/>
+      <g transform="scale(.52) translate(-161 -142)" fill="url(#neon)">
+        <use href="#ipi-emblem" opacity=".5" filter="url(#glow)"/>
+        <use href="#ipi-emblem"/>
+      </g>
+      <path d="M-70-58v-21h21m98 0h21v21M-70 58v21h21m98 0h21V58" fill="none" stroke="#61a9ed" stroke-opacity=".65" stroke-width="2" stroke-linecap="round"/>
+      <g fill="#06132c" stroke="#75bfff" stroke-width="2">
+        <circle cx="-156" cy="-156" r="6"/>
+        <circle cx="156" cy="-156" r="6"/>
+        <circle cx="-156" cy="156" r="6"/>
+        <circle cx="156" cy="156" r="6"/>
+      </g>
+      <path d="M-85-154h71m28 308h71" fill="none" stroke="#b6e9ff" stroke-width="5" stroke-linecap="round"/>
+    </g>
+
+    <g font-family="monospace" text-anchor="middle">
+      <text x="1110" y="435" fill="#8dc8ff" font-size="13" letter-spacing="3">IPI SECURE ELEMENT</text>
+    </g>
+    <path d="M72 466h1296" stroke="url(#accent)" stroke-opacity=".45"/>
+    <rect x="1" y="1" width="1438" height="478" rx="23" fill="none" stroke="#83b7ff" stroke-opacity=".15" stroke-width="2"/>
   </g>
 </svg>
