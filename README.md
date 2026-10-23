@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/ipi-nft.svg" alt="IPI NFT — Open-source contract. Physical objects. Cryptographic identity." width="100%" />
+  <img src="docs/assets/ipi-nft-banner.png" alt="IPI NFT — Open-source contract. Physical objects. Cryptographic identity." width="100%" />
 </p>
 
 <p align="center">

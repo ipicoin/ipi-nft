@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
   <title id="title">IPI NFT — Physical objects. Cryptographic identity.</title>
-  <desc id="desc">The original IPI secure-element icon appears on the right of a navy and blue banner. Open-source CW721 contract on IPI.</desc>
+  <desc id="desc">A navy and blue IPI NFT banner with the original secure-element icon on the right. Physical objects. Cryptographic identity. Open-source CW721 contract on IPI.</desc>
   <defs>
     <linearGradient id="background" x2="1" y2="1">
       <stop stop-color="#102958" />
@@ -48,9 +48,12 @@
     <g font-family="Arial,Helvetica,sans-serif">
       <rect x="72" y="65" width="7" height="16" rx="3" fill="#6bd2ff" />
       <text x="94" y="79" fill="#9ddcff" font-size="15" font-weight="700" letter-spacing="3">IPI / OPEN SOURCE / CW721</text>
-      <text x="67" y="209" fill="#d3edff" font-size="106" font-weight="700" letter-spacing="-5">IPI NFT</text>
+      <text x="67" y="209" fill="#c6e9ff" font-size="110" font-weight="700" letter-spacing="-5">IPI NFT</text>
       <rect x="73" y="239" width="80" height="4" rx="2" fill="url(#accent)" />
-      <text x="72" y="291" fill="#b5dcff" font-size="29">Physical objects. Cryptographic identity.</text>
+      <text x="72" y="282" fill="#b5dcff" font-size="31">
+        <tspan x="72" dy="0">Physical objects.</tspan>
+        <tspan x="72" dy="41">Cryptographic identity.</tspan>
+      </text>
       <g font-family="monospace" font-size="13" letter-spacing="1.5">
         <rect x="72" y="384" width="142" height="31" rx="6" fill="#152c52" stroke="#365d8b" />
         <text x="89" y="404" fill="#a2dbff">secp256k1</text>
