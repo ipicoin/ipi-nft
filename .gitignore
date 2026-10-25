@@ -12,7 +12,10 @@ data/
 *.key
 *.tsbuildinfo
 .DS_Store
-AGENTS.md
-.agents/
+# Track shared OpenSpec skills; keep other agent-local state private.
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/openspec-*/
 .aws/
 .codex/

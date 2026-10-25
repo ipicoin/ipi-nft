@@ -11,6 +11,7 @@
   <a href="#built-for-ipi-secure-elements">IPI secure elements</a> ·
   <a href="docs/DEPLOYMENT.md">Deploy on IPI</a> ·
   <a href="docs/CHIP-PROTOCOL.md">Chip protocol</a> ·
+  <a href="openspec/README.md">OpenSpec</a> ·
   <a href="docs/REVIEW.md">Repository review</a> ·
   <a href="SECURITY.md">Security model</a>
 </p>
@@ -169,13 +170,18 @@ schema/            Generated contract JSON schemas
 deployments/       Verified testnet record, release note and unconfigured template
 tools/wasm-tests/  Tests that execute the optimized artifact in CosmWasm VM
 scripts/           Pinned builds, Rust checks and release manifest
+openspec/          Current specifications, change plans and completed change history
+.agents/skills/    Shared OpenSpec workflows for coding agents
 docs/              Deployment, hardware protocol, readiness and review
 docs/assets/       README banner, secure-element icon and security artwork
 ```
 
 ## Development
 
+Contributors and coding agents start with [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and the [OpenSpec guide](openspec/README.md). Current requirements live in [`openspec/specs/`](openspec/specs/); changes record their requirements, tasks and verification alongside the code.
+
 ```sh
+npm run check:specs     # Strict OpenSpec and archived-task validation
 npm run check           # Strict TypeScript check
 npm test                # SDK and CLI tests
 npm run test:contract   # Rust formatting, Clippy and contract tests in Docker

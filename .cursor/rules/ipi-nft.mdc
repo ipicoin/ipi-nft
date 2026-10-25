@@ -1,0 +1,8 @@
+---
+description: Shared IPI NFT project instructions and OpenSpec workflow
+alwaysApply: true
+---
+
+Read [AGENTS.md](../../AGENTS.md) at the repository root before working. It is the shared source for project scope, critical invariants, source/spec mapping and verification commands.
+
+Follow [the OpenSpec guide](../../openspec/README.md) and read affected `openspec/specs/` capabilities and active changes before changing behavior. Shared workflow skills are in `.agents/skills/openspec-*/SKILL.md`.
