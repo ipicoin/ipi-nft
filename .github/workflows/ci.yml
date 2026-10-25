@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - name: Install locked JavaScript dependencies
         run: npm ci --ignore-scripts
+      - name: Strict OpenSpec and archived-task validation
+        run: npm run check:specs
       - name: TypeScript, protocol, reader and CLI tests
         run: npm test
       - name: Rust formatting, Clippy and contract tests

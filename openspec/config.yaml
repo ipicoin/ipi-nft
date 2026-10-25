@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  Write artifacts in English; keep OpenSpec headings and SHALL/MUST keywords in English.
+  IPI NFT is a GNU AGPL v3-licensed (AGPL-3.0-only) CosmWasm CW721 contract with a TypeScript SDK and CLI.
+  Read AGENTS.md and openspec/README.md for the source map and change workflow.
+  Preserve ipi-nft-chip-v1 byte compatibility across Rust, TypeScript and Java Card.
+  Ownership follows CW721; a chip proof authenticates a key and never authorizes a transfer.
+  The contract/SDK/CLI exist and a testnet deployment is recorded. No qualified NFT
+  applet, card transport, provisioning implementation or Pokédex NFT Station is bundled.
+  The CLI prepares unsigned messages; native IPI tooling signs and broadcasts.
+  SECURITY.md and docs/CHIP-PROTOCOL.md define trust boundaries and hardware requirements.
+  Runtime versions and build pins live in package.json and toolchain.lock.json.
+
+rules:
+  proposal:
+    - Name cohesive capability paths and distinguish existing behavior from proposed behavior.
+    - State compatibility impact and keep unrelated runtime or hardware work out of scope.
+  specs:
+    - Use testable SHALL/MUST requirements and at least one WHEN/THEN scenario per requirement.
+    - Cover failure cases, authorization and replay where relevant; link implementation and tests.
+    - Describe future hardware as an integration requirement, never as shipped or certified.
+  design:
+    - Address affected trust boundaries and Rust/SDK/ABI compatibility; explain alternatives.
+    - Document how relevant checks prove the change and what they cannot verify.
+  tasks:
+    - Use checkboxes and include implementation, applicable tests, documentation and strict OpenSpec validation.
+    - Include schema regeneration for ABI changes and shared-vector checks for protocol changes.
+
+operations:
+  apply:
+    guidance:
+      - Read affected main specs and source/tests before editing; preserve unrelated user changes.
+      - Follow the user's authorized scope; report genuine blockers with concrete evidence.
+      - Run checks appropriate to the changed paths; report hardware/live-chain checks separately.
+  archive:
+    guidance:
+      - Require completed tasks and recorded validation before archiving; do not invent completion.
+      - Sync delta specs into main specs and record any remaining work as unfinished work.

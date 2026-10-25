@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "description": "CW721 NFT issuance and chip authenticity tools for the IPI blockchain",
   "engines": {
     "node": ">=24"
@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
+    "check:specs": "openspec validate --all --strict --no-interactive && openspec validate --archived --strict --no-interactive",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "test:contract": "bash scripts/rust.sh check",
     "schema": "bash scripts/rust.sh schema",
@@ -32,6 +33,7 @@
     "@scure/base": "2.4.0"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "1.15.0",
     "@types/node": "24.10.1",
     "typescript": "5.9.3"
   }
