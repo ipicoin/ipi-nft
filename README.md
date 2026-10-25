@@ -36,7 +36,7 @@ The contract implements CW721 ownership, transfers, approvals, receiver callback
   <strong>Open source on-chain. A private key inside your object.</strong>
 </p>
 
-**IPI secure elements will be available to buy soon.** This [MIT-licensed](LICENSE) smart contract is designed for full compatibility with the upcoming IPI secure elements through the [IPI NFT chip protocol](docs/CHIP-PROTOCOL.md). The planned integration covers on-chip key generation, permanent NFT binding, signed mint proofs and fresh authenticity checks. The contract and SDK implement the verification side today; the hardware applet, provisioning tools and real-device qualification are the next step.
+**IPI secure elements will be available to buy soon.** This [GNU AGPL v3-licensed](LICENSE) smart contract is designed for full compatibility with the upcoming IPI secure elements through the [IPI NFT chip protocol](docs/CHIP-PROTOCOL.md). The planned integration covers on-chip key generation, permanent NFT binding, signed mint proofs and fresh authenticity checks. The contract and SDK implement the verification side today; the hardware applet, provisioning tools and real-device qualification are the next step.
 
 The goal is simple: give a collectible, artwork or physical product an identity that can prove itself. Its public key is recorded on IPI. Its private key is generated and retained inside the secure element. A scan asks the chip for a new cryptographic proof, while the open-source contract lets anyone inspect how issuance, identity and ownership are enforced.
 
@@ -226,4 +226,6 @@ This asymmetry makes public verification possible: anyone can check a signature 
 
 ## License and provenance
 
-[MIT](LICENSE). The repository originally contained an upstream Stargaze demo; that application has been replaced with the IPI contract and tooling. Original attribution and historical release notes remain in [UPSTREAM.md](UPSTREAM.md) and [docs/history/](docs/history/). CW721 behavior builds on the [public-awesome/cw-nfts](https://github.com/public-awesome/cw-nfts) implementation.
+Copyright (c) 2026 IPI contributors. IPI NFT is licensed under the [GNU Affero General Public License, version 3 only](LICENSE) (`AGPL-3.0-only`). `LICENSE` contains the complete, unmodified [official GNU AGPL v3 text](https://www.gnu.org/licenses/agpl-3.0.txt).
+
+The repository originally contained an upstream Stargaze demo; that application has been replaced with the IPI contract and tooling. The [previous MIT notice](docs/history/MIT-LICENSE.txt), original attribution in [UPSTREAM.md](UPSTREAM.md) and historical release notes in [docs/history/](docs/history/) are preserved. CW721 behavior builds on the separately licensed [public-awesome/cw-nfts](https://github.com/public-awesome/cw-nfts) implementation. Dependencies and generated OpenSpec skills retain their own licenses.

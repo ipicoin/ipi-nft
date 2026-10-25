@@ -29,4 +29,4 @@ Before finalizing, run strict OpenSpec checks and the affected software checks, 
 
 Follow [SECURITY.md](SECURITY.md) for trust boundaries and vulnerability reporting, and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for operator procedures. Keep secrets, generated release artifacts and local provisioning data outside Git.
 
-The qualified applet, hardware provisioning and Pokédex NFT Station are future integrations. Test results must identify whether they came from software fixtures, a trusted-node check or actual hardware. Preserve the [MIT license](LICENSE) and [upstream attribution](UPSTREAM.md).
+The qualified applet, hardware provisioning and Pokédex NFT Station are future integrations. Test results must identify whether they came from software fixtures, a trusted-node check or actual hardware. Contributions use the project's [GNU AGPL v3 license](LICENSE) (`AGPL-3.0-only`). Preserve the [previous MIT notice](docs/history/MIT-LICENSE.txt), [upstream attribution](UPSTREAM.md) and third-party license notices.

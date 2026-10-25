@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Write artifacts in English; keep OpenSpec headings and SHALL/MUST keywords in English.
-  IPI NFT is an MIT-licensed CosmWasm CW721 contract with a TypeScript SDK and CLI.
+  IPI NFT is a GNU AGPL v3-licensed (AGPL-3.0-only) CosmWasm CW721 contract with a TypeScript SDK and CLI.
   Read AGENTS.md and openspec/README.md for the source map and change workflow.
   Preserve ipi-nft-chip-v1 byte compatibility across Rust, TypeScript and Java Card.
   Ownership follows CW721; a chip proof authenticates a key and never authorizes a transfer.
