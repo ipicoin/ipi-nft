@@ -1,0 +1,65 @@
+
+> @ipi/nft@0.2.0 test:contract
+> bash scripts/rust.sh check
+
+STEP 1/3: FROM cosmwasm/optimizer@sha256:7e0b9229c1a4118d0c9a2af2e7f5d95a91f264c26a2ce5681c779926e74d7f85
+STEP 2/3: RUN rustup component add rustfmt clippy
+--> Using cache 13a25f40d2ab15b930fc0d17beb46bebb2d30a53f8d82d47352f0e4b52d0271c
+--> 13a25f40d2ab
+STEP 3/3: WORKDIR /code
+--> Using cache 7e871ffb78532c54bcc3bc024ced8f0fe5b926d666e5ce6eb739ba907e768af4
+COMMIT ipi-nft-rust-check:0.17.0
+--> 7e871ffb7853
+Successfully tagged localhost/ipi-nft-rust-check:0.17.0
+7e871ffb78532c54bcc3bc024ced8f0fe5b926d666e5ce6eb739ba907e768af4
+warning: dropping unsupported crate type `cdylib` for target `x86_64-unknown-linux-musl`
+
+warning: `ipi-nft` (lib) generated 1 warning
+    Checking ipi-nft v0.2.0 (/code/contracts/ipi-nft)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.77s
+warning: dropping unsupported crate type `cdylib` for target `x86_64-unknown-linux-musl`
+
+warning: `ipi-nft` (lib) generated 1 warning
+   Compiling ipi-nft v0.2.0 (/code/contracts/ipi-nft)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.73s
+     Running unittests src/lib.rs (/target/debug/deps/ipi_nft-68bca718a18fcda6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (/target/debug/deps/contract-025d314b143e497c)
+
+running 15 tests
+test immutable_metadata_has_no_update_backdoor ... ok
+test wrong_chain_instantiation_and_funds_are_rejected ... ok
+test mint_exposes_standard_cw721_metadata_and_enumeration ... ok
+test proof_cannot_move_to_another_chain_or_contract ... ok
+test malformed_or_oversized_mint_fields_are_rejected_before_storage ... ok
+test expired_approvals_and_revoked_operators_cannot_transfer ... ok
+test send_delivers_receiver_callback_and_transfers_ownership ... ok
+test approvals_cannot_bypass_current_owner_and_chip ... ok
+test receiver_failure_rolls_back_send ... ok
+test minter_rotation_requires_acceptance_and_can_be_renounced ... ok
+test reader_proofs_and_missing_chip_do_not_authorize_owner_or_operator ... ok
+test mint_rejects_unauthorized_sender_and_every_changed_commitment ... ok
+test chip_verification_rejects_changed_nonce_and_burned_tokens ... ok
+test token_and_chip_identities_survive_burn_and_cannot_be_reissued ... ok
+test action_authorizations_are_bound_expiring_and_never_revive ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/protocol.rs (/target/debug/deps/protocol-0764f2c80aa0ec0f)
+
+running 2 tests
+test shared_sdk_vector_matches_rust_and_host_crypto ... ok
+test shared_action_vector_preserves_uint64_and_domain ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests ipi_nft
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

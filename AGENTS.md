@@ -35,9 +35,9 @@ The user's requested scope controls whether work is planning-only or includes im
 
 ## Critical invariants
 
-- Preserve `ipi-nft-chip-v1` canonical bytes across Rust, TypeScript, fixtures and Java Card. Use secp256k1, SHA-256 once, compressed public keys and low-S compact chain signatures. Card DER signatures are normalized in the SDK.
-- Chip proofs bind the chain, collection, token, metadata, issuer and initial owner. A chip proof never authorizes a transfer or spending funds.
-- Keys, metadata commitments and token IDs cannot be replaced or reused within a collection, even after burning. CW721 owner/approval rules govern ownership changes.
+- Use `ipi-nft-chip-v2` with secp256r1 (NIST P-256) object chips, SHA-256 once, compressed keys and low-S compact signatures. Preserve historical v1 records separately. Wallet account k1/r1 signatures are independent of chip proofs.
+- Mint proofs bind issuance; reader proofs authenticate possession. Transfer/send/burn require the current NFT owner as sender plus a distinct chip action proof with sequence and expiry. Read [action rules](docs/OWNER-CHIP-ACTIONS.md) when changing any ownership route. NFT ownership never grants native bank-payment authority.
+- Keys, metadata commitments and token IDs cannot be replaced or reused within a collection, even after burning. NFT ownership is authoritative; approvals cannot bypass the owner or chip. Recovery and key replacement are absent.
 - The supported collection has no upgrade administrator. Readers must pin and verify deployment identity; REST state still depends on a trusted node.
 - Readers generate fresh one-attempt nonces, enforce expiry and recheck state after the card exchange. Physical adapters must honor cancellation.
 - Production chip keys are generated inside qualified hardware and remain non-exportable. The public fixture key is test-only. The CLI never accepts chip private keys or account seeds, and never signs or broadcasts.

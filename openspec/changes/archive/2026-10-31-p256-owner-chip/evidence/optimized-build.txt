@@ -1,0 +1,29 @@
+
+> @ipi/nft@0.2.0 build:contract
+> bash scripts/build-contract.sh
+
+1.86.0-x86_64-unknown-linux-musl (active, default)
+cargo 1.86.0 (adf9b6ad1 2025-02-28)
+Building project /code ...
+Found workspace member entries: ["contracts/ipi-nft"]
+Package directories: ["contracts/ipi-nft"]
+Contracts to be built: ["contracts/ipi-nft"]
+Building "ipi_nft" ...
+Building ipi_nft with features {}
+    Finished `release` profile [optimized] target(s) in 0.19s
+Optimizing artifacts ...
+Optimizing ipi_nft.wasm ...
+Post-processing artifacts...
+31c5713031532e33e5718107d03c2e44264058c98c9f2fd455464dcbe97d1d77  ipi_nft.wasm
+Done.
+   Compiling ipi-nft-wasm-tests v0.1.0 (/code/tools/wasm-tests)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.70s
+     Running tests/wasm.rs (/vm-target/debug/deps/wasm-9e4f7d319c76f8a0)
+
+running 1 test
+libunwind: __unw_add_dynamic_fde: bad fde: FDE is really a CIE
+test optimized_wasm_accepts_sdk_vector_and_enforces_lifecycle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+artifacts/ipi_nft.wasm: 31c5713031532e33e5718107d03c2e44264058c98c9f2fd455464dcbe97d1d77

@@ -13,7 +13,7 @@ function fixture(wasmBytes = wasm) {
     contract: { address: deployment.collection, contract_info: { code_id: deployment.codeId, admin: "" } },
     code: { code_info: { code_id: deployment.codeId, data_hash: configured.wasmSha256 }, data: wasmBytes.toString("base64") },
     protocol: { contract: CONTRACT_NAME, version: CONTRACT_VERSION, chain_id: deployment.chainId, proof_protocol: PROTOCOL },
-    issuance: { token_id: v.binding.tokenId, token_uri: v.binding.tokenUri, burned: false, issuer: v.issuer, initial_owner: v.owner, minted_height: 1,
+    issuance: { token_id: v.binding.tokenId, token_uri: v.binding.tokenUri, action_sequence: "0", burned: false, issuer: v.issuer, initial_owner: v.owner, minted_height: 1,
       extension: { protocol: PROTOCOL, binding_sha256: v.bindingSha256, metadata_sha256: v.binding.metadataSha256, chip_public_key: bytes(v.publicKey).toString("base64") } },
     owner: v.owner,
   };

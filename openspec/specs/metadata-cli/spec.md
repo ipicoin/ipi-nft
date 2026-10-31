@@ -26,7 +26,7 @@ Metadata verification SHALL bound input to 64 KiB, validate the expected SHA-256
 - **THEN** it writes an image copy, metadata and hash manifest with `published: false` and performs no upload
 
 ### Requirement: Transaction tooling prepares unsigned messages
-The CLI SHALL prepare collection, mint, transfer and burn JSON without accepting account seeds or production chip private keys. It MUST NOT sign or broadcast transactions. Mint-message preparation SHALL recheck request commitments and verify the supplied chip proof before emitting chain JSON.
+The CLI SHALL prepare collection, mint, transfer, send and burn JSON without accepting account seeds or production chip private keys. It MUST NOT sign or broadcast transactions. Mint and ownership-action preparation SHALL recheck request commitments and verify the supplied chip proof before emitting chain JSON. Ownership actions SHALL include sequence and expiry as uint64 strings.
 
 #### Scenario: Mint request has been edited
 - **WHEN** a saved request's binding hash, nonce or proof message differs from its recomputed value
@@ -35,6 +35,10 @@ The CLI SHALL prepare collection, mint, transfer and burn JSON without accepting
 #### Scenario: Broadcasting or unknown flags are requested
 - **WHEN** a user supplies an unsupported command or option
 - **THEN** the CLI reports an error instead of pretending to submit a transaction
+
+#### Scenario: Action request has been edited
+- **WHEN** owner, target, callback, sequence or expiry differs from the signed action
+- **THEN** action-message generation fails
 
 ### Requirement: Generated files are protected from accidental replacement
 The CLI SHALL create output files exclusively and SHALL fail when an output file or metadata output directory already exists. New data files SHALL request mode `0600` and metadata directories mode `0700` on systems supporting those permissions. Input files MUST be regular files within command-specific limits.

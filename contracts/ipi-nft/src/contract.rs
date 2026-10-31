@@ -109,7 +109,7 @@ pub fn execute(
                 metadata_sha256.as_slice(),
             );
             let nonce = mint_nonce(info.sender.as_str(), &owner);
-            if !deps.api.secp256k1_verify(
+            if !deps.api.secp256r1_verify(
                 &proof_hash(&binding, &nonce),
                 chip_proof.as_slice(),
                 chip_public_key.as_slice(),
@@ -144,6 +144,7 @@ pub fn execute(
                     initial_owner: owner,
                     minted_height: env.block.height,
                     burned: false,
+                    action_sequence: 0u64.into(),
                 },
             )?;
             CHIP_TOKENS.save(deps.storage, chip_public_key.as_slice(), &token_id)?;
@@ -152,7 +153,20 @@ pub fn execute(
                 cosmwasm_std::HexBinary::from(binding).to_hex(),
             ));
         }
-        ExecuteMsg::Burn { token_id } => {
+        ExecuteMsg::Burn {
+            token_id,
+            authorization,
+        } => {
+            authorize_action(
+                deps.branch(),
+                &env,
+                &info,
+                &token_id,
+                "burn",
+                "",
+                &[],
+                &authorization,
+            )?;
             let result = base.execute(
                 deps.branch(),
                 &env,
@@ -172,19 +186,47 @@ pub fn execute(
         ExecuteMsg::TransferNft {
             recipient,
             token_id,
-        } => Cw721ExecuteMsg::TransferNft {
-            recipient,
-            token_id,
-        },
+            authorization,
+        } => {
+            deps.api.addr_validate(&recipient)?;
+            authorize_action(
+                deps.branch(),
+                &env,
+                &info,
+                &token_id,
+                "transfer",
+                &recipient,
+                &[],
+                &authorization,
+            )?;
+            Cw721ExecuteMsg::TransferNft {
+                recipient,
+                token_id,
+            }
+        }
         ExecuteMsg::SendNft {
             contract,
             token_id,
             msg,
-        } => Cw721ExecuteMsg::SendNft {
-            contract,
-            token_id,
-            msg,
-        },
+            authorization,
+        } => {
+            deps.api.addr_validate(&contract)?;
+            authorize_action(
+                deps.branch(),
+                &env,
+                &info,
+                &token_id,
+                "send",
+                &contract,
+                msg.as_slice(),
+                &authorization,
+            )?;
+            Cw721ExecuteMsg::SendNft {
+                contract,
+                token_id,
+                msg,
+            }
+        }
         ExecuteMsg::Approve {
             spender,
             token_id,
@@ -235,7 +277,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractErro
                 && canonical_signature(signature.as_slice())
                 && deps
                     .api
-                    .secp256k1_verify(
+                    .secp256r1_verify(
                         &proof_hash(record.extension.binding_sha256.as_slice(), nonce.as_slice()),
                         signature.as_slice(),
                         record.extension.chip_public_key.as_slice(),
@@ -247,4 +289,61 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractErro
             })?)
         }
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn authorize_action(
+    deps: DepsMut,
+    env: &Env,
+    info: &MessageInfo,
+    token_id: &str,
+    action: &str,
+    target: &str,
+    payload: &[u8],
+    authorization: &crate::msg::ActionAuthorization,
+) -> Result<(), ContractError> {
+    let owner_query = cw721::msg::Cw721QueryMsg::OwnerOf {
+        token_id: token_id.to_owned(),
+        include_expired: Some(false),
+    };
+    let owner: cw721::msg::OwnerOfResponse =
+        cosmwasm_std::from_json(Base::default().query(deps.as_ref(), env, owner_query)?)?;
+    if owner.owner != info.sender.as_str() {
+        return Err(ContractError::Invalid("current owner sender"));
+    }
+    let mut record = ISSUANCES.load(deps.storage, token_id)?;
+    let expiry = authorization.expires_height.u64();
+    if record.burned
+        || record.action_sequence != authorization.sequence
+        || expiry <= env.block.height
+        || expiry - env.block.height > 1000
+    {
+        return Err(ContractError::Invalid("action sequence or expiry"));
+    }
+    let digest = crate::proof::action_hash(
+        record.extension.binding_sha256.as_slice(),
+        action,
+        &owner.owner,
+        target,
+        payload,
+        authorization.sequence.u64(),
+        expiry,
+    );
+    if !canonical_signature(authorization.signature.as_slice())
+        || !deps.api.secp256r1_verify(
+            &digest,
+            authorization.signature.as_slice(),
+            record.extension.chip_public_key.as_slice(),
+        )?
+    {
+        return Err(ContractError::InvalidProof);
+    }
+    record.action_sequence = record
+        .action_sequence
+        .u64()
+        .checked_add(1)
+        .ok_or(ContractError::Invalid("exhausted action sequence"))?
+        .into();
+    ISSUANCES.save(deps.storage, token_id, &record)?;
+    Ok(())
 }

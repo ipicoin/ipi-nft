@@ -14,7 +14,7 @@ library = []
 
 [dependencies]
 cosmwasm-schema = "=2.3.4"
-cosmwasm-std = "=2.3.4"
+cosmwasm-std = { version = "=2.3.4", features = ["cosmwasm_2_1"] }
 cw721 = "=0.20.0"
 cw-storage-plus = "=2.0.0"
 cw-ownable = "=2.1.0"
@@ -24,6 +24,6 @@ thiserror = "=1.0.69"
 
 [dev-dependencies]
 cw-multi-test = "=2.5.1"
-k256 = { version = "=0.13.4", features = ["ecdsa"] }
+p256 = { version = "=0.13.2", features = ["ecdsa"] }
 serde_json = "1.0"
 

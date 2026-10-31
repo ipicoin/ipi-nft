@@ -1,17 +1,17 @@
-# IPI NFT chip protocol v1
+# IPI NFT chip protocol v2
 
-Protocol identifier: **`ipi-nft-chip-v1`**. This specification defines the bytes shared by the contract, SDK and future NFT applet. It does not declare a particular card model qualified or provide an installed applet. The shared fixture in [`protocol/vectors.json`](../protocol/vectors.json) is tested in TypeScript, native Rust and the optimized Wasm VM.
+Protocol identifier: **`ipi-nft-chip-v2`**. This specification defines the bytes shared by the contract, SDK and future NFT applet. It does not declare a particular card model qualified or provide an installed applet. The shared fixture in [`protocol/vectors.json`](../protocol/vectors.json) is tested in TypeScript, native Rust and the optimized Wasm VM.
 
 ## Identity and ownership
 
-One collection permanently associates a token ID with a compressed secp256k1 public key, token URI and metadata SHA-256. The key and ID cannot be reused in that collection, even after burning. The immutable binding also includes chain ID and collection address, so a proof cannot move to a different deployment.
+One collection permanently associates a token ID with a compressed secp256r1 (NIST P-256) public key, token URI and metadata SHA-256. The key and ID cannot be reused in that collection, even after burning. The immutable binding also includes chain ID and collection address, so a proof cannot move to a different deployment.
 
-The initial owner is authenticated by the mint proof. Current ownership subsequently follows CW721 transfers. Owner changes do not rewrite the chip. There is no chip-authorized transfer mechanism in v1, and no global uniqueness registry across arbitrary collections.
+The initial owner is authenticated by the mint proof. Current ownership is the CW721 NFT owner. Transfer, send and burn require both that owner as transaction sender and an action-specific chip proof. Owner changes do not rewrite the chip binding. There is no recovery/key replacement or global uniqueness registry across collections.
 
 ## Encoding rules
 
 - Hash function: SHA-256.
-- Curve: **secp256k1**, not secp256r1/P-256. Keys must use the exact k1 domain parameters.
+- Curve: **secp256r1 = NIST P-256**, not secp256k1 or Brainpool. Wallet accounts may independently use k1 or r1.
 - Public key on-chain: compressed SEC1, 33 bytes, prefix `02` or `03`. A card's 65-byte uncompressed key is normalized by the SDK after curve validation.
 - Card signature: ASN.1 DER ECDSA. SDK conversion produces compact 64-byte `r || s`, each integer unsigned big-endian and left-padded to 32 bytes.
 - On-chain signatures require `1 <= s <= n/2` (low-S); SDK normalization replaces high `s` with `n - s`. Curve verification rejects invalid scalars/points.
@@ -25,7 +25,7 @@ Validated protocol limits: chain ID 1–128 UTF-8 bytes with no control characte
 
 ```text
 bindingHash = SHA256(
-    "IPI_NFT_BINDING_V1\0"
+    "IPI_NFT_BINDING_V2\0"
     || LP(chainId)
     || LP(collectionAddress)
     || LP(tokenId)
@@ -42,7 +42,7 @@ The full JSON metadata is stored off-chain. Hash its **exact bytes**, including 
 
 ```text
 mintNonce = SHA256(
-    "IPI_NFT_MINT_V1\0"
+    "IPI_NFT_MINT_V2\0"
     || LP(issuerAddress)
     || LP(initialOwnerAddress)
 )
@@ -53,9 +53,9 @@ This nonce is deterministic and is not a live reader challenge. It prevents a va
 ### Signed proof
 
 ```text
-message = "IPI_NFT_PROOF_V1\0" || bindingHash[32] || nonce[32]
+message = "IPI_NFT_PROOF_V2\0" || bindingHash[32] || nonce[32]
 digest  = SHA256(message)
-signature = ECDSA_secp256k1(privateKey, digest)
+signature = ECDSA_secp256r1 (NIST P-256)(privateKey, digest)
 ```
 
 The domain is 17 bytes and the complete message is **81 bytes**. Use `proofMessage()` for the canonical bytes. For minting, `nonce = mintNonce`. For live authentication, the reader chooses a fresh cryptographically random 32-byte nonce.
@@ -74,7 +74,7 @@ stateDiagram-v2
     Bound --> Bound: Read public state / sign fresh proof
 ```
 
-There is no transition from `Bound` to another identity. There is no private-key export, arbitrary private-key import, reset-key or rebind command. Perform internal generation using the card's supported [`KeyPair.genKeyPair`](https://docs.oracle.com/en/java/javacard/3.2/jcapi/api_classic/javacard/security/KeyPair.html) implementation and configured secp256k1 domain parameters. The host does not generate a private key to upload.
+There is no transition from `Bound` to another identity. There is no private-key export, arbitrary private-key import, reset-key or rebind command. Perform internal generation using the card's supported [`KeyPair.genKeyPair`](https://docs.oracle.com/en/java/javacard/3.2/jcapi/api_classic/javacard/security/KeyPair.html) implementation and configured secp256r1 (NIST P-256) domain parameters. The host does not generate a private key to upload.
 
 A production `prove(nonce)` command must build the domain-separated message **inside the applet** from its stored binding and the supplied nonce. It must not expose unrestricted raw signing with the NFT key. The 81-byte message returned by `mint-request` is an interoperability/debugging artifact; the host must verify it corresponds to the applet's stored binding.
 
@@ -84,7 +84,7 @@ Public discovery should return a protocol version, canonical public key, locked 
 
 GlobalPlatform manages applet installation and administration. It is not itself proof of NFT authenticity. J3R110/J3R150 labels alone do not establish support for the required curve/API behavior. Qualify the exact silicon, OS, Java Card/GP versions and memory profile. Check at least:
 
-1. On-card key generation with configured secp256k1 parameters; no host-generated production key path.
+1. On-card key generation with configured secp256r1 (NIST P-256) parameters; no host-generated production key path.
 2. SHA-256 ECDSA interoperability, DER variants and compressed/uncompressed point export.
 3. Persistent, atomic binding; repeated initialization, power loss and reset behavior.
 4. Disabled export/import/reset/rebind commands and fixed-purpose signing.
@@ -107,3 +107,24 @@ Use a separate NFT profile in Pokédex; a generic wallet applet with export/rese
 The SDK implements steps 2, 3, 5, 6 and 7. The card transport implements steps 4 and the APDU exchange. `ChipChallenge` snapshots its inputs, returns defensive copies, defaults to a 30-second lifetime and consumes the challenge even on a failed verification attempt. The on-chain `verify_chip` query cannot enforce freshness; it returns a mathematical result for whatever nonce the caller supplied.
 
 A live signature establishes that the key answered. It cannot prevent a relay to a remote genuine chip, prove legal title to the object, detect moving a genuine chip into a counterfeit enclosure or guarantee continued IPFS availability. Physical construction and deployment policy must address those concerns separately.
+
+## Owner and chip action authorization
+
+The owner signs the chain transaction with its existing Cosmos k1 or r1 account. The chip signs a separate message:
+
+```text
+message = "IPI_NFT_ACTION_V2\0" || bindingHash[32]
+        || LP(action) || LP(currentOwner) || LP(target)
+        || SHA256(callbackBytes)[32] || sequence[u64BE] || expiresHeight[u64BE]
+digest = SHA256(message)
+```
+
+Actions are exactly transfer, send, burn. Transfer uses the recipient as target and empty callback bytes. Send uses the receiving contract and exact callback bytes. Burn uses empty target and callback bytes. Uint64 JSON fields are canonical decimal strings. Sign the full message with a hashing card API, or the digest with a prehashed API, exactly once.
+
+The issuance query exposes action_sequence, initially "0". The contract accepts only this sequence and increments it on every successful transfer/send/burn, including self transfers. Failure (including callback failure) rolls back all state. Expiry is exclusive: current height < expires_height <= current height + 1000. A halted chain does not advance height; this is not a wall-clock guarantee. Fetch fresh state before preparing a new action and reconcile submitted transactions before retrying.
+
+Operators cannot bypass owner or chip authorization. Reader and mint signatures have different domains and cannot authorize these actions. Returning ownership to a former owner does not revive old proofs. Lost chips block transfers and burn; recovery is deliberately absent in this version.
+
+A future applet must implement an explicit fixed-purpose action command using its locked binding and these exact bytes. Existing prove(nonce) alone is insufficient. No hardware action implementation or physical qualification is claimed here.
+
+The historical v1 protocol and vectors are retained in CHIP-PROTOCOL-V1.md and protocol/vectors-v1.json. Version 0.2.0 requires a new collection; it cannot update the immutable v1 deployment.

@@ -2,11 +2,11 @@ use cosmwasm_std::{testing::MockApi, to_json_binary, Addr, Binary, Empty};
 use cw_multi_test::{App, AppBuilder, ContractWrapper, Executor};
 use ipi_nft::{
     contract::{execute, instantiate, query},
-    msg::{ExecuteMsg, InstantiateMsg},
+    msg::{ActionAuthorization, ExecuteMsg, InstantiateMsg},
     proof::{binding_hash, mint_nonce, proof_hash},
     state::Issuance,
 };
-use k256::ecdsa::{signature::hazmat::PrehashSigner, Signature, SigningKey};
+use p256::ecdsa::{signature::hazmat::PrehashSigner, Signature, SigningKey};
 use serde_json::{json, Value};
 
 struct Fixture {
@@ -70,7 +70,39 @@ impl Fixture {
             token_uri: "ipfs://example".into(),
             metadata_sha256: vec![3; 32].into(),
             chip_public_key: key.verifying_key().to_encoded_point(true).as_bytes().into(),
-            chip_proof: signature.to_bytes().to_vec().into(),
+            chip_proof: signature
+                .normalize_s()
+                .unwrap_or(signature)
+                .to_bytes()
+                .to_vec()
+                .into(),
+        }
+    }
+    fn authorization(
+        &self,
+        id: &str,
+        action: &str,
+        target: &str,
+        payload: &[u8],
+    ) -> ActionAuthorization {
+        let record: Issuance =
+            serde_json::from_value(self.query(json!({"issuance":{"token_id":id}}))).unwrap();
+        let expiry = self.app.block_info().height + 100;
+        let digest = ipi_nft::proof::action_hash(
+            record.extension.binding_sha256.as_slice(),
+            action,
+            &self.owner(id),
+            target,
+            payload,
+            record.action_sequence.u64(),
+            expiry,
+        );
+        let key = SigningKey::from_slice(&[7; 32]).unwrap();
+        let sig: Signature = key.sign_prehash(&digest).unwrap();
+        ActionAuthorization {
+            sequence: record.action_sequence,
+            expires_height: expiry.into(),
+            signature: sig.normalize_s().unwrap_or(sig).to_bytes().to_vec().into(),
         }
     }
     fn mint(&mut self, id: &str, seed: u8) {
@@ -103,7 +135,7 @@ fn mint_exposes_standard_cw721_metadata_and_enumeration() {
     f.mint("item-9007199254740993", 7);
     assert_eq!(f.owner("item-9007199254740993"), f.owner.as_str());
     let info = f.query(json!({"nft_info":{"token_id":"item-9007199254740993"}}));
-    assert_eq!(info["extension"]["protocol"], "ipi-nft-chip-v1");
+    assert_eq!(info["extension"]["protocol"], "ipi-nft-chip-v2");
     assert_eq!(info["token_uri"], "ipfs://example");
     assert_eq!(f.query(json!({"num_tokens":{}}))["count"], 1);
     assert_eq!(
@@ -220,7 +252,8 @@ fn token_and_chip_identities_survive_burn_and_cannot_be_reissued() {
             f.other.clone(),
             f.collection.clone(),
             &ExecuteMsg::Burn {
-                token_id: "item-1".into()
+                token_id: "item-1".into(),
+                authorization: f.authorization("item-1", "burn", "", &[])
             },
             &[]
         )
@@ -231,6 +264,7 @@ fn token_and_chip_identities_survive_burn_and_cannot_be_reissued() {
             f.collection.clone(),
             &ExecuteMsg::Burn {
                 token_id: "item-1".into(),
+                authorization: f.authorization("item-1", "burn", "", &[]),
             },
             &[],
         )
@@ -269,12 +303,13 @@ fn token_and_chip_identities_survive_burn_and_cannot_be_reissued() {
         .is_err());
 }
 #[test]
-fn approvals_transfer_and_revocation_follow_cw721() {
+fn approvals_cannot_bypass_current_owner_and_chip() {
     let mut f = Fixture::new();
     f.mint("item-1", 7);
     let transfer = ExecuteMsg::TransferNft {
         token_id: "item-1".into(),
         recipient: f.other.to_string(),
+        authorization: f.authorization("item-1", "transfer", f.other.as_str(), &[]),
     };
     assert!(f
         .app
@@ -306,9 +341,13 @@ fn approvals_transfer_and_revocation_follow_cw721() {
     f.app
         .execute_contract(f.owner.clone(), f.collection.clone(), &approve, &[])
         .unwrap();
+    assert!(f
+        .app
+        .execute_contract(f.other.clone(), f.collection.clone(), &transfer, &[])
+        .is_err());
     let before = f.query(json!({"nft_info":{"token_id":"item-1"}}));
     f.app
-        .execute_contract(f.other.clone(), f.collection.clone(), &transfer, &[])
+        .execute_contract(f.owner.clone(), f.collection.clone(), &transfer, &[])
         .unwrap();
     assert_eq!(f.owner("item-1"), f.other.as_str());
     assert_eq!(
@@ -338,6 +377,7 @@ fn expired_approvals_and_revoked_operators_cannot_transfer() {
     let transfer = ExecuteMsg::TransferNft {
         token_id: "item-1".into(),
         recipient: f.other.to_string(),
+        authorization: f.authorization("item-1", "transfer", f.other.as_str(), &[]),
     };
     assert!(f
         .app
@@ -382,7 +422,7 @@ fn chip_verification_rejects_changed_nonce_and_burned_tokens() {
             &[9; 32],
         ))
         .unwrap();
-    let request = json!({"verify_chip":{"token_id":"item-1","nonce":"09".repeat(32),"signature":Binary::from(sig.to_bytes().to_vec())}});
+    let request = json!({"verify_chip":{"token_id":"item-1","nonce":"09".repeat(32),"signature":Binary::from(sig.normalize_s().unwrap_or(sig).to_bytes().to_vec())}});
     assert_eq!(f.query(request.clone())["valid"], true);
     let mut bad = request.clone();
     bad["verify_chip"]["nonce"] = json!("08".repeat(32));
@@ -393,6 +433,7 @@ fn chip_verification_rejects_changed_nonce_and_burned_tokens() {
             f.collection.clone(),
             &ExecuteMsg::Burn {
                 token_id: "item-1".into(),
+                authorization: f.authorization("item-1", "burn", "", &[]),
             },
             &[],
         )
@@ -498,7 +539,12 @@ fn wrong_chain_instantiation_and_funds_are_rejected() {
         cosmwasm_std::testing::mock_env(),
         info,
         ExecuteMsg::Burn {
-            token_id: "x".into()
+            token_id: "x".into(),
+            authorization: ActionAuthorization {
+                sequence: 0u64.into(),
+                expires_height: 1u64.into(),
+                signature: Binary::default()
+            }
         }
     )
     .unwrap_err()
@@ -542,12 +588,17 @@ fn receiver_failure_rolls_back_send() {
             &ExecuteMsg::SendNft {
                 contract: target.to_string(),
                 token_id: "item-1".into(),
-                msg: Binary::default()
+                msg: Binary::default(),
+                authorization: f.authorization("item-1", "send", target.as_str(), &[])
             },
             &[]
         )
         .is_err());
     assert_eq!(f.owner("item-1"), f.owner.as_str());
+    assert_eq!(
+        f.query(json!({"issuance":{"token_id":"item-1"}}))["action_sequence"],
+        "0"
+    );
 }
 
 #[test]
@@ -637,6 +688,7 @@ fn send_delivers_receiver_callback_and_transfers_ownership() {
                 contract: target.to_string(),
                 token_id: "item-1".into(),
                 msg: Binary::from(b"payload".as_slice()),
+                authorization: f.authorization("item-1", "send", target.as_str(), b"payload"),
             },
             &[],
         )
@@ -645,5 +697,152 @@ fn send_delivers_receiver_callback_and_transfers_ownership() {
     assert_eq!(
         f.query(json!({"issuance":{"token_id":"item-1"}}))["initial_owner"],
         f.owner.as_str()
+    );
+}
+
+#[test]
+fn action_authorizations_are_bound_expiring_and_never_revive() {
+    let mut f = Fixture::new();
+    f.mint("item-1", 7);
+    let auth = f.authorization("item-1", "transfer", f.other.as_str(), &[]);
+    let transfer = ExecuteMsg::TransferNft {
+        token_id: "item-1".into(),
+        recipient: f.other.to_string(),
+        authorization: auth.clone(),
+    };
+    let good = serde_json::to_value(&transfer).unwrap();
+    for (field, value) in [
+        ("sequence", json!("1")),
+        (
+            "expires_height",
+            json!(f.app.block_info().height.to_string()),
+        ),
+        ("signature", json!(Binary::from(vec![0; 64]))),
+    ] {
+        let mut bad = good.clone();
+        bad["transfer_nft"]["authorization"][field] = value;
+        assert!(f
+            .app
+            .execute_contract(f.owner.clone(), f.collection.clone(), &bad, &[])
+            .is_err());
+    }
+    let mut bad = good.clone();
+    bad["transfer_nft"]["recipient"] = json!(f.issuer);
+    assert!(f
+        .app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &bad, &[])
+        .is_err());
+    let wrong_action = ExecuteMsg::Burn {
+        token_id: "item-1".into(),
+        authorization: auth.clone(),
+    };
+    assert!(f
+        .app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &wrong_action, &[])
+        .is_err());
+    assert_eq!(
+        f.query(json!({"issuance":{"token_id":"item-1"}}))["action_sequence"],
+        "0"
+    );
+    f.app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &transfer, &[])
+        .unwrap();
+    let back = ExecuteMsg::TransferNft {
+        token_id: "item-1".into(),
+        recipient: f.owner.to_string(),
+        authorization: f.authorization("item-1", "transfer", f.owner.as_str(), &[]),
+    };
+    f.app
+        .execute_contract(f.other.clone(), f.collection.clone(), &back, &[])
+        .unwrap();
+    assert!(f
+        .app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &transfer, &[])
+        .is_err());
+    assert_eq!(f.owner("item-1"), f.owner.as_str());
+    assert_eq!(
+        f.query(json!({"issuance":{"token_id":"item-1"}}))["action_sequence"],
+        "2"
+    );
+    let expired = ExecuteMsg::Burn {
+        token_id: "item-1".into(),
+        authorization: f.authorization("item-1", "burn", "", &[]),
+    };
+    f.app.update_block(|b| b.height += 100);
+    assert!(f
+        .app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &expired, &[])
+        .is_err());
+    let mut too_far = f.authorization("item-1", "burn", "", &[]);
+    too_far.expires_height = (f.app.block_info().height + 1001).into();
+    assert!(f
+        .app
+        .execute_contract(
+            f.owner.clone(),
+            f.collection.clone(),
+            &ExecuteMsg::Burn {
+                token_id: "item-1".into(),
+                authorization: too_far
+            },
+            &[]
+        )
+        .is_err());
+}
+
+#[test]
+fn reader_proofs_and_missing_chip_do_not_authorize_owner_or_operator() {
+    let mut f = Fixture::new();
+    f.mint("item-1", 7);
+    let mut auth = f.authorization("item-1", "burn", "", &[]);
+    if let ExecuteMsg::Mint { chip_proof, .. } = f.mint_msg("item-1", 7) {
+        auth.signature = chip_proof;
+    }
+    assert!(f
+        .app
+        .execute_contract(
+            f.owner.clone(),
+            f.collection.clone(),
+            &ExecuteMsg::Burn {
+                token_id: "item-1".into(),
+                authorization: auth
+            },
+            &[]
+        )
+        .is_err());
+    for route in [
+        json!({"burn":{"token_id":"item-1"}}),
+        json!({"transfer_nft":{"token_id":"item-1","recipient":f.other}}),
+        json!({"send_nft":{"token_id":"item-1","contract":f.other,"msg":""}}),
+    ] {
+        assert!(f
+            .app
+            .execute_contract(f.owner.clone(), f.collection.clone(), &route, &[])
+            .is_err());
+    }
+    f.app
+        .execute_contract(
+            f.owner.clone(),
+            f.collection.clone(),
+            &ExecuteMsg::ApproveAll {
+                operator: f.other.to_string(),
+                expires: None,
+            },
+            &[],
+        )
+        .unwrap();
+    let burn = ExecuteMsg::Burn {
+        token_id: "item-1".into(),
+        authorization: f.authorization("item-1", "burn", "", &[]),
+    };
+    assert!(f
+        .app
+        .execute_contract(f.other.clone(), f.collection.clone(), &burn, &[])
+        .is_err());
+    f.app
+        .execute_contract(f.owner.clone(), f.collection.clone(), &burn, &[])
+        .unwrap();
+    assert_eq!(
+        f.query(json!({"issuance":{"token_id":"item-1"}}))["action_sequence"],
+        "1"
     );
 }

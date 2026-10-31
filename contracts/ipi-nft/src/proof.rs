@@ -1,16 +1,15 @@
 use crate::error::ContractError;
 use sha2::{Digest, Sha256};
 
-pub const PROTOCOL: &str = "ipi-nft-chip-v1";
-pub const BINDING_DOMAIN: &[u8] = b"IPI_NFT_BINDING_V1\0";
-pub const PROOF_DOMAIN: &[u8] = b"IPI_NFT_PROOF_V1\0";
-pub const MINT_DOMAIN: &[u8] = b"IPI_NFT_MINT_V1\0";
+pub const PROTOCOL: &str = "ipi-nft-chip-v2";
+pub const BINDING_DOMAIN: &[u8] = b"IPI_NFT_BINDING_V2\0";
+pub const PROOF_DOMAIN: &[u8] = b"IPI_NFT_PROOF_V2\0";
+pub const MINT_DOMAIN: &[u8] = b"IPI_NFT_MINT_V2\0";
 
 pub fn canonical_signature(signature: &[u8]) -> bool {
     const HALF_ORDER: [u8; 32] = [
-        0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0x5d, 0x57, 0x6e, 0x73, 0x57, 0xa4, 0x50, 0x1d, 0xdf, 0xe9, 0x2f, 0x46, 0x68, 0x1b,
-        0x20, 0xa0,
+        127, 255, 255, 255, 128, 0, 0, 0, 127, 255, 255, 255, 255, 255, 255, 255, 222, 115, 125,
+        86, 211, 139, 207, 66, 121, 220, 229, 97, 126, 49, 146, 168,
     ];
     signature.len() == 64
         && signature[32..] <= HALF_ORDER[..]
@@ -83,8 +82,30 @@ pub fn validate_uri(value: &str) -> Result<(), ContractError> {
 
 pub fn validate_key(key: &[u8]) -> Result<(), ContractError> {
     if key.len() != 33 || !matches!(key[0], 2 | 3) {
-        return Err(ContractError::Invalid("compressed secp256k1 key"));
+        return Err(ContractError::Invalid("compressed secp256r1 key"));
     }
-    // Curve membership is checked by secp256k1_verify at mint.
+    // Curve membership is checked by secp256r1_verify at mint.
     Ok(())
+}
+
+/// Separate from reader/mint proofs. Payload is hashed even when empty.
+pub fn action_hash(
+    binding: &[u8],
+    action: &str,
+    owner: &str,
+    target: &str,
+    payload: &[u8],
+    sequence: u64,
+    expires_height: u64,
+) -> [u8; 32] {
+    let mut hash = Sha256::new();
+    hash.update(b"IPI_NFT_ACTION_V2\0");
+    hash.update(binding);
+    for value in [action, owner, target] {
+        field(&mut hash, value);
+    }
+    hash.update(Sha256::digest(payload));
+    hash.update(sequence.to_be_bytes());
+    hash.update(expires_height.to_be_bytes());
+    hash.finalize().into()
 }

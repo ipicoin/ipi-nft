@@ -23,7 +23,7 @@ fn shared_sdk_vector_matches_rust_and_host_crypto() {
     let signature = bytes(&v["signatureCompact"]);
     assert!(canonical_signature(&signature));
     assert!(MockApi::default()
-        .secp256k1_verify(&digest, &signature, &bytes(&v["publicKey"]))
+        .secp256r1_verify(&digest, &signature, &bytes(&v["publicKey"]))
         .unwrap());
     let mut high_s = signature.to_vec();
     high_s[32..].fill(0xff);
@@ -31,4 +31,24 @@ fn shared_sdk_vector_matches_rust_and_host_crypto() {
     for invalid in [vec![], vec![0; 64], vec![1; 63], vec![1; 65]] {
         assert!(!canonical_signature(&invalid));
     }
+}
+
+#[test]
+fn shared_action_vector_preserves_uint64_and_domain() {
+    let v: Value = serde_json::from_str(include_str!("../../../protocol/vectors.json")).unwrap();
+    let a = &v["action"];
+    let bytes = |name: &str| HexBinary::from_hex(v[name].as_str().unwrap()).unwrap();
+    let hash = ipi_nft::proof::action_hash(
+        &bytes("bindingSha256"),
+        a["action"].as_str().unwrap(),
+        a["owner"].as_str().unwrap(),
+        a["target"].as_str().unwrap(),
+        &[],
+        a["sequence"].as_str().unwrap().parse().unwrap(),
+        a["expiresHeight"].as_str().unwrap().parse().unwrap(),
+    );
+    assert_eq!(HexBinary::from(hash), bytes("actionSha256"));
+    assert!(MockApi::default()
+        .secp256r1_verify(&hash, &bytes("actionSignatureCompact"), &bytes("publicKey"))
+        .unwrap());
 }

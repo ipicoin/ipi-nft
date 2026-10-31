@@ -1,11 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { base32, bech32 } from "@scure/base";
 
-export const PROTOCOL = "ipi-nft-chip-v1";
+export const PROTOCOL = "ipi-nft-chip-v2";
 export const CONTRACT_NAME = "crates.io:ipi-nft";
-export const CONTRACT_VERSION = "0.1.0";
+export const CONTRACT_VERSION = "0.2.0";
 const utf8 = (value: string) => Buffer.from(value, "utf8");
 export const hashHex = (bytes: Uint8Array): string => Buffer.from(sha256(bytes)).toString("hex");
 
@@ -62,29 +62,29 @@ export function validateBinding(input: Binding): Binding {
 }
 export function bindingHash(input: Binding): Uint8Array {
   const b = validateBinding(input);
-  return sha256(Buffer.concat([utf8("IPI_NFT_BINDING_V1\0"), ...[b.chainId, b.collection, b.tokenId, b.tokenUri].map(field), hexBytes(b.metadataSha256, 32)]));
+  return sha256(Buffer.concat([utf8("IPI_NFT_BINDING_V2\0"), ...[b.chainId, b.collection, b.tokenId, b.tokenUri].map(field), hexBytes(b.metadataSha256, 32)]));
 }
 export function mintNonce(issuer: string, owner: string): Uint8Array {
-  return sha256(Buffer.concat([utf8("IPI_NFT_MINT_V1\0"), field(address(issuer, "issuer")), field(address(owner, "owner"))]));
+  return sha256(Buffer.concat([utf8("IPI_NFT_MINT_V2\0"), field(address(issuer, "issuer")), field(address(owner, "owner"))]));
 }
 /** Feed this complete message to Java Card ALG_ECDSA_SHA_256 (one SHA-256). */
 export function proofMessage(binding: Uint8Array, nonce: Uint8Array): Uint8Array {
   if (binding.length !== 32 || nonce.length !== 32) throw new Error("Binding and nonce must be 32 bytes");
-  return Buffer.concat([utf8("IPI_NFT_PROOF_V1\0"), binding, nonce]);
+  return Buffer.concat([utf8("IPI_NFT_PROOF_V2\0"), binding, nonce]);
 }
 export function compressedPublicKey(bytes: Uint8Array): Uint8Array {
-  if (![33, 65].includes(bytes.length)) throw new Error("Invalid secp256k1 public key length");
-  return secp256k1.Point.fromBytes(bytes).toBytes(true);
+  if (![33, 65].includes(bytes.length)) throw new Error("Invalid p256 public key length");
+  return p256.Point.fromBytes(bytes).toBytes(true);
 }
 /** Convert the card's ASN.1 DER signature to the chain's compact low-S format. */
 export function compactSignature(bytes: Uint8Array, format: "der" | "compact" = "der"): Uint8Array {
-  const signature = secp256k1.Signature.fromBytes(bytes, format);
-  const normalized = signature.hasHighS() ? new secp256k1.Signature(signature.r, secp256k1.Point.Fn.ORDER - signature.s) : signature;
+  const signature = p256.Signature.fromBytes(bytes, format);
+  const normalized = signature.hasHighS() ? new p256.Signature(signature.r, p256.Point.Fn.ORDER - signature.s) : signature;
   return normalized.toBytes("compact");
 }
 export function verifyChipSignature(publicKey: Uint8Array, binding: Uint8Array, nonce: Uint8Array, signature: Uint8Array): boolean {
   try {
-    return secp256k1.verify(signature, sha256(proofMessage(binding, nonce)), compressedPublicKey(publicKey), { prehash: false, lowS: true, format: "compact" });
+    return p256.verify(signature, sha256(proofMessage(binding, nonce)), compressedPublicKey(publicKey), { prehash: false, lowS: true, format: "compact" });
   } catch { return false; }
 }
 /** Reader-generated, expiring, one-attempt challenge. Never trust a chip-selected nonce. */
@@ -149,4 +149,33 @@ export function verifyMetadata(bytes: Uint8Array, expectedHash: string): unknown
   const expected = Buffer.from(hexBytes(expectedHash, 32, "metadata hash")).toString("hex");
   if (hashHex(bytes) !== expected) throw new Error("Metadata hash mismatch");
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as unknown;
+}
+
+export type ActionInput = Binding & {
+  action: "transfer" | "send" | "burn"; owner: string; target: string;
+  payload: Uint8Array; sequence: string; expiresHeight: string;
+};
+export function uint64(value: unknown): bigint {
+  if (typeof value !== "string" || !/^(0|[1-9][0-9]{0,19})$/.test(value) || BigInt(value) > 18446744073709551615n) throw new Error("Invalid uint64 string");
+  return BigInt(value);
+}
+/** Full message for the chip's SHA-256 ECDSA API; never a reader challenge. */
+export function actionMessage(input: ActionInput): Uint8Array {
+  const binding = bindingHash(input);
+  const owner = address(input.owner);
+  if (!["transfer", "send", "burn"].includes(input.action)) throw new Error("Invalid action");
+  const target = input.action === "burn" ? "" : address(input.target);
+  if (target !== input.target || !(input.payload instanceof Uint8Array) || input.payload.length > 65536 || (input.action !== "send" && input.payload.length !== 0)) throw new Error("Invalid action target or payload");
+  const sequence = Buffer.alloc(8), expiry = Buffer.alloc(8);
+  sequence.writeBigUInt64BE(uint64(input.sequence)); expiry.writeBigUInt64BE(uint64(input.expiresHeight));
+  return Buffer.concat([utf8("IPI_NFT_ACTION_V2\0"), binding, field(input.action), field(owner), field(target), sha256(input.payload), sequence, expiry]);
+}
+export function ownershipMessage(input: ActionInput, publicKey: Uint8Array, signature: Uint8Array) {
+  const compact = compactSignature(signature, "compact");
+  if (!p256.verify(compact, sha256(actionMessage(input)), compressedPublicKey(publicKey), { prehash: false, lowS: true })) throw new Error("Chip proof does not match this action");
+  const authorization = { sequence: input.sequence, expires_height: input.expiresHeight, signature: Buffer.from(compact).toString("base64") };
+  const common = { token_id: tokenId(input.tokenId), authorization };
+  if (input.action === "burn") return { burn: common };
+  if (input.action === "transfer") return { transfer_nft: { ...common, recipient: input.target } };
+  return { send_nft: { ...common, contract: input.target, msg: Buffer.from(input.payload).toString("base64") } };
 }

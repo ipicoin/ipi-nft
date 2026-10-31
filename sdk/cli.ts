@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { parseArgs } from "node:util";
 import {
-  address, bindingHash, compactSignature, compressedPublicKey, hexBytes, metadata, mintMessage,
+  actionMessage, ownershipMessage, type ActionInput, address, bindingHash, compactSignature, compressedPublicKey, hexBytes, metadata, mintMessage,
   mintNonce, proofMessage, record, text, tokenId, validateBinding, verifyMetadata, type Binding,
 } from "./core.js";
 import { fetchJson, IpiNftClient, validateDeployment, endpoint } from "./client.js";
@@ -27,8 +27,8 @@ npm run nft -- <command> [options]
   collection-message   --name NAME --symbol SYMBOL --issuer IPI_ADDRESS [--chain-id ID] [--out FILE]
   mint-request         --binding FILE --issuer IPI_ADDRESS --owner IPI_ADDRESS --out FILE
   mint-message         --request FILE --public-key HEX --signature HEX [--format der|compact] --out FILE
-  transfer-message     --token-id ID --recipient IPI_ADDRESS [--out FILE]
-  burn-message         --token-id ID [--out FILE]
+  action-request       --intent FILE --out FILE
+  action-message       --request FILE --public-key HEX --signature HEX [--format der|compact] --out FILE
   verify-deployment    --deployment FILE
   token                --deployment FILE --token-id ID
   verify-metadata      --metadata FILE --sha256 HEX
@@ -42,7 +42,8 @@ const specs: Record<string, string[]> = {
   "collection-message": ["name", "symbol", "issuer", "chain-id", "out"],
   "mint-request": ["binding", "issuer", "owner", "out"],
   "mint-message": ["request", "public-key", "signature", "format", "out"],
-  "transfer-message": ["token-id", "recipient", "out"], "burn-message": ["token-id", "out"],
+  "action-request": ["intent", "out"],
+  "action-message": ["request", "public-key", "signature", "format", "out"],
   "verify-deployment": ["deployment"], token: ["deployment", "token-id"],
   "verify-metadata": ["metadata", "sha256"], transaction: ["rest", "chain-id", "tx-hash"],
 };
@@ -86,10 +87,21 @@ async function main() {
     const publicKey = compressedPublicKey(hexBytes(keyText, keyText.length === 66 ? 33 : 65, "public key"));
     const signature = compactSignature(hexBytes(sigText, sigText.length / 2, "signature"), format);
     output(mintMessage({ ...binding, issuer, owner, publicKey, signature }), required("out"));
-  } else if (command === "transfer-message") {
-    output({ transfer_nft: { token_id: tokenId(required("token-id")), recipient: address(required("recipient")) } }, optional("out"));
-  } else if (command === "burn-message") {
-    output({ burn: { token_id: tokenId(required("token-id")) } }, optional("out"));
+  } else if (command === "action-request" || command === "action-message") {
+    const request = jsonFile(required(command === "action-request" ? "intent" : "request"));
+    const payloadHex = request.payloadHex;
+    if (typeof payloadHex !== "string" || payloadHex.length % 2 || !/^[0-9a-f]*$/.test(payloadHex) || payloadHex.length > 131072) throw new Error("Invalid payloadHex");
+    const input = { ...request, payload: Buffer.from(payloadHex, "hex") } as unknown as ActionInput;
+    const messageHex = Buffer.from(actionMessage(input)).toString("hex");
+    if (command === "action-request") output({ ...request, messageHex }, required("out"));
+    else {
+      if (request.messageHex !== messageHex) throw new Error("Action request was altered");
+      const format = optional("format") ?? "der";
+      if (format !== "der" && format !== "compact") throw new Error("Invalid signature format");
+      const key = required("public-key"), sig = required("signature");
+      if (sig.length < 16 || sig.length > 144 || sig.length % 2) throw new Error("Invalid signature length");
+      output(ownershipMessage(input, compressedPublicKey(hexBytes(key, key.length === 66 ? 33 : 65)), compactSignature(hexBytes(sig, sig.length / 2), format)), required("out"));
+    }
   } else if (command === "verify-deployment" || command === "token") {
     const client = new IpiNftClient(validateDeployment(jsonFile(required("deployment"))));
     if (command === "verify-deployment") { await client.checkDeployment(); output({ verified: true, ...client.deployment }); }

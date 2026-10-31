@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setTimeout } from "node:timers/promises";
-import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { p256 } from "@noble/curves/nist.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { base32 } from "@scure/base";
 import {
@@ -25,15 +25,15 @@ test("mint proof binds every deployment, token, metadata, issuer and owner field
   for (const patch of [
     { chainId: "ipi-testnet-2" }, { collection: address(v.binding.collection).replace(/^ipi/, "cosmos") },
     { tokenId: "another" }, { tokenUri: "ipfs://different" }, { metadataSha256: "00".repeat(32) },
-    { issuer: v.owner }, { owner: v.issuer }, { publicKey: secp256k1.getPublicKey(new Uint8Array(32).fill(8)) },
+    { issuer: v.owner }, { owner: v.issuer }, { publicKey: p256.getPublicKey(new Uint8Array(32).fill(8)) },
   ]) assert.throws(() => mintMessage({ ...input, ...patch }));
 });
 
 test("Java Card uncompressed keys and high-S DER signatures normalize to canonical chain values", () => {
-  const low = secp256k1.Signature.fromBytes(bytes(v.signatureCompact));
-  const high = new secp256k1.Signature(low.r, secp256k1.Point.Fn.ORDER - low.s);
+  const low = p256.Signature.fromBytes(bytes(v.signatureCompact));
+  const high = new p256.Signature(low.r, p256.Point.Fn.ORDER - low.s);
   assert.equal(hex(compactSignature(high.toBytes("der"))), v.signatureCompact);
-  assert.equal(hex(compressedPublicKey(secp256k1.getPublicKey(testKey, false))), v.publicKey);
+  assert.equal(hex(compressedPublicKey(p256.getPublicKey(testKey, false))), v.publicKey);
   assert.equal(verifyChipSignature(bytes(v.publicKey), bytes(v.bindingSha256), bytes(v.mintNonce), high.toBytes("compact")), false);
 });
 
@@ -97,4 +97,23 @@ test("metadata uses exact bytes and raw CIDv1 hashes; modifications fail", () =>
   assert.throws(() => verifyMetadata(Buffer.alloc(64 * 1024 + 1), "00".repeat(32)), /64 KiB/);
   const invalid = Buffer.from([0xff]);
   assert.throws(() => verifyMetadata(invalid, hashHex(invalid)));
+});
+
+test("action proofs bind owner, recipient, sequence, expiry, action and callback", async () => {
+  const { actionMessage, ownershipMessage } = await import("../sdk/core.js");
+  const input = { ...v.binding, action: "transfer" as const, owner: v.owner, target: v.issuer, payload: Buffer.alloc(0), sequence: "9007199254740993", expiresHeight: "9007199254741093" };
+  const signature = sign(actionMessage(input));
+  assert.equal(ownershipMessage(input, bytes(v.publicKey), signature).transfer_nft?.authorization.sequence, input.sequence);
+  for (const patch of [{ owner: v.issuer }, { target: v.owner }, { sequence: "9007199254740994" }, { expiresHeight: "9007199254741094" }, { action: "burn" as const, target: "" }, { action: "send" as const, payload: Buffer.from("withdraw") }]) {
+    assert.throws(() => ownershipMessage({ ...input, ...patch }, bytes(v.publicKey), signature));
+  }
+  assert.throws(() => ownershipMessage(input, bytes(v.publicKey), bytes(v.signatureCompact)));
+  for (const sequence of ["01", "-1", "18446744073709551616", "1.0"]) assert.throws(() => actionMessage({ ...input, sequence }));
+  assert.throws(() => actionMessage({ ...input, payload: Buffer.from("unexpected") }));
+});
+
+test("a k1 chip signing the exact v2 message is rejected", async () => {
+  const { secp256k1 } = await import("@noble/curves/secp256k1.js");
+  const message = proofMessage(bytes(v.bindingSha256), bytes(v.mintNonce));
+  assert.equal(verifyChipSignature(secp256k1.getPublicKey(testKey), bytes(v.bindingSha256), bytes(v.mintNonce), secp256k1.sign(message, testKey)), false);
 });

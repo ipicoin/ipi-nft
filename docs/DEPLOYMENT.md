@@ -2,7 +2,7 @@
 
 This guide targets **`ipi-testnet-1`**. Run commands in the repository root using **Bash**. A [verified testnet collection](../deployments/ipi-testnet-1.release.md) is recorded; the steps below describe creating another deployment. No mainnet collection is configured. `deployments/ipi-testnet-1.template.json` intentionally contains `null` fields and cannot pass SDK validation.
 
-The native IPI node executable and keyring must handle signing. The local IPI wallet integration uses `/cosmos.evm.crypto.v1.ethsecp256k1.PubKey`, Ethereum-derived account addresses and Keccak-based signing. A generic Cosmos mnemonic signer is not a drop-in substitute. The NFT chip key is a separate identity key and must never be used as the issuer's account key.
+The native IPI node executable and keyring must handle signing. The prototype account adapter supports Cosmos SDK secp256k1 and secp256r1 with SIGN_MODE_DIRECT. Select the account type and address derivation actually configured on the target chain; the historical testnet wallet instructions are not evidence of compatibility with a different account profile. The NFT chip key is a separate identity key and must never be used as the issuer's account key.
 
 ## 1. Prepare a release and the operator environment
 
@@ -16,7 +16,7 @@ sha256sum artifacts/ipi_nft.wasm
 cat artifacts/release.json
 ```
 
-The contract uses CosmWasm 2.x, CW721 0.20 and secp256k1 verification. The build validates the module and executes it in CosmWasm VM 2.3.4. The public testnet node reported wasmd 0.60.8 and wasmvm 2.3.4 during the [readiness check](TESTNET-READINESS.md). Recheck live configuration and upload/instantiate permissions before deploying; the node can be upgraded independently of this repository.
+The contract uses CosmWasm 2.x, CW721 0.20 and secp256r1 (P256) verification. The build validates the module and executes it in CosmWasm VM 2.3.4. The public testnet node reported wasmd 0.60.8 and wasmvm 2.3.4 during the [readiness check](TESTNET-READINESS.md). Recheck live configuration and upload/instantiate permissions before deploying; the node can be upgraded independently of this repository.
 
 For a tagged release, build from the committed checkout and archive `ipi_nft.wasm`, `checksums.txt` and `release.json` together. The manifest records the actual Wasm hash, pinned optimizer digest, source hashes, Git revision and dirty state. Never reuse another project's code ID, including a Card Vault code ID.
 
@@ -183,7 +183,7 @@ npm run nft -- mint-request \
 
 The request contains `bindingSha256`, deterministic mint `nonce` and complete `messageHex`. It contains **no private key**. Read the [chip protocol](CHIP-PROTOCOL.md) before implementing a card adapter.
 
-The future qualified applet must generate a new key internally, permanently commit the binding, export only its public key and sign the request using ECDSA/secp256k1/SHA-256. Provisioning must complete and be read back successfully before minting. There is no production software-key fallback or simulated-card mint command in this repository.
+The future qualified applet must generate a new key internally, permanently commit the binding, export only its public key and sign the request using ECDSA/secp256r1/SHA-256. Provisioning must complete and be read back successfully before minting. There is no production software-key fallback or simulated-card mint command in this repository.
 
 Supply the real card response:
 
@@ -230,4 +230,4 @@ Compare token ID, initial owner, public key, URI, metadata hash and binding with
 
 Rotate the minter through `update_minter_ownership` with `transfer_ownership`, then have the proposed new account call `accept_ownership`. An optional expiry is supported by CW Ownable. `renounce_ownership` permanently ends new issuance. Existing owners retain normal CW721 rights. Consult the generated execute schema before signing an administrative change.
 
-For transfer or burn, prepare the message with `transfer-message` or `burn-message`, then execute with the current owner or an authorized account. A burn is permanent; it also causes chip authentication through this SDK to fail. Selling or handing over the physical object is a separate process from the on-chain transfer.
+For transfer, send or burn, follow [owner and chip action preparation](OWNER-CHIP-ACTIONS.md) with `action-request` and `action-message`, then execute as the current NFT owner. An operator cannot substitute for the owner. A burn is permanent; it also causes chip authentication through this SDK to fail. Selling or handing over the physical object is a separate process from the on-chain transfer.

@@ -1,0 +1,49 @@
+
+> @ipi/nft@0.2.0 test
+> npm run build && node --test dist/tests/*.test.js
+
+
+> @ipi/nft@0.2.0 build
+> tsc
+
+✔ transaction verification requires the correct chain/hash, committed height and successful execution (592.421353ms)
+✔ CLI creates metadata, verifies bytes, constructs proof-bound mint JSON and never overwrites files (847.720384ms)
+✔ CLI retains large IDs and refuses unknown options or pretend broadcasting (316.659207ms)
+✔ CLI creates action requests and verifies chip proof before emitting unsigned ownership messages (1104.509065ms)
+✔ deployment pins chain, exact address, uint64 code ID, checksum and immutable admin state (19.029008ms)
+✔ rejects mismatched chain before authenticating a chip (0.643807ms)
+✔ rejects mismatched collection before authenticating a chip (0.415736ms)
+✔ rejects mismatched code ID before authenticating a chip (0.406189ms)
+✔ rejects mismatched numeric code ID before authenticating a chip (0.481471ms)
+✔ rejects mismatched code response ID before authenticating a chip (0.507469ms)
+✔ rejects mismatched checksum before authenticating a chip (2.107745ms)
+✔ rejects mismatched downloaded bytecode before authenticating a chip (0.717987ms)
+✔ rejects mismatched administrator before authenticating a chip (0.594183ms)
+✔ rejects mismatched version before authenticating a chip (0.730281ms)
+✔ rejects mismatched protocol before authenticating a chip (0.943915ms)
+✔ reader authenticates a fresh chip proof and returns the current on-chain owner (37.643623ms)
+✔ burn before or during chip authentication is rejected (10.230904ms)
+✔ stalled card exchange times out and signals the transport to stop (27.450661ms)
+✔ corrupt chain metadata and copied mint proof fail authentication (3.878893ms)
+✔ unconfigured deployments and unsafe endpoints fail closed (0.326186ms)
+✔ REST failures and oversized bodies are bounded and rejected (2.167288ms)
+✔ code download accepts release-sized bytecode but still bounds its base64 response (45.52245ms)
+✔ shared Rust/TypeScript vector fixes exact domain, lengths, hashes and DER encoding (9.350228ms)
+✔ mint proof binds every deployment, token, metadata, issuer and owner field (49.711871ms)
+✔ Java Card uncompressed keys and high-S DER signatures normalize to canonical chain values (0.898248ms)
+✔ signing the digest with a hashing API again fails verification (2.773214ms)
+✔ fresh challenges differ, snapshot inputs and accept a signature only once (7.225471ms)
+✔ expired challenges fail (6.302436ms)
+✔ copied public keys and altered proofs cannot authenticate (4.711047ms)
+✔ IDs remain strings; IPI address checksums, UTF-8 bounds and URI restrictions are enforced (0.464058ms)
+✔ metadata uses exact bytes and raw CIDv1 hashes; modifications fail (1.901616ms)
+✔ action proofs bind owner, recipient, sequence, expiry, action and callback (24.981203ms)
+✔ a k1 chip signing the exact v2 message is rejected (24.983085ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3054.444172
