@@ -1,6 +1,6 @@
 {
   "contract_name": "ipi-nft",
-  "contract_version": "0.1.0",
+  "contract_version": "0.2.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -82,10 +82,14 @@
           "transfer_nft": {
             "type": "object",
             "required": [
+              "authorization",
               "recipient",
               "token_id"
             ],
             "properties": {
+              "authorization": {
+                "$ref": "#/definitions/ActionAuthorization"
+              },
               "recipient": {
                 "type": "string"
               },
@@ -107,11 +111,15 @@
           "send_nft": {
             "type": "object",
             "required": [
+              "authorization",
               "contract",
               "msg",
               "token_id"
             ],
             "properties": {
+              "authorization": {
+                "$ref": "#/definitions/ActionAuthorization"
+              },
               "contract": {
                 "type": "string"
               },
@@ -248,9 +256,13 @@
           "burn": {
             "type": "object",
             "required": [
+              "authorization",
               "token_id"
             ],
             "properties": {
+              "authorization": {
+                "$ref": "#/definitions/ActionAuthorization"
+              },
               "token_id": {
                 "type": "string"
               }
@@ -324,6 +336,26 @@
             ]
           }
         ]
+      },
+      "ActionAuthorization": {
+        "type": "object",
+        "required": [
+          "expires_height",
+          "sequence",
+          "signature"
+        ],
+        "properties": {
+          "expires_height": {
+            "$ref": "#/definitions/Uint64"
+          },
+          "sequence": {
+            "$ref": "#/definitions/Uint64"
+          },
+          "signature": {
+            "$ref": "#/definitions/Binary"
+          }
+        },
+        "additionalProperties": false
       },
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
@@ -2675,6 +2707,7 @@
       "title": "Issuance",
       "type": "object",
       "required": [
+        "action_sequence",
         "burned",
         "extension",
         "initial_owner",
@@ -2684,6 +2717,9 @@
         "token_uri"
       ],
       "properties": {
+        "action_sequence": {
+          "$ref": "#/definitions/Uint64"
+        },
         "burned": {
           "type": "boolean"
         },
@@ -2740,6 +2776,10 @@
         },
         "HexBinary": {
           "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
           "type": "string"
         }
       }
@@ -3192,6 +3232,7 @@
       "title": "Issuance",
       "type": "object",
       "required": [
+        "action_sequence",
         "burned",
         "extension",
         "initial_owner",
@@ -3201,6 +3242,9 @@
         "token_uri"
       ],
       "properties": {
+        "action_sequence": {
+          "$ref": "#/definitions/Uint64"
+        },
         "burned": {
           "type": "boolean"
         },
@@ -3257,6 +3301,10 @@
         },
         "HexBinary": {
           "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+          "type": "string"
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
           "type": "string"
         }
       }

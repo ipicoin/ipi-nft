@@ -29,6 +29,7 @@ fn optimized_wasm_accepts_sdk_vector_and_enforces_lifecycle() {
     let b = &v["binding"];
     let s = |v: &Value| v.as_str().unwrap().to_owned();
     let mut env = mock_env();
+    env.block.height = 12345;
     env.block.chain_id = s(&b["chainId"]);
     env.contract.address = Addr::unchecked(s(&b["collection"]));
     let issuer = MessageInfo {
@@ -62,18 +63,27 @@ fn optimized_wasm_accepts_sdk_vector_and_enforces_lifecycle() {
     let verified: Value =
         from_json(query(&mut instance, env.clone(), proof.clone()).unwrap()).unwrap();
     assert_eq!(verified["valid"], true);
+    // Bare CW721 transfer and minter/operator-like sender cannot bypass the chip policy.
+    assert!(execute::<_, _, _, _, Empty>(
+        &mut instance,
+        env.clone(),
+        owner.clone(),
+        json!({"transfer_nft":{"token_id":b["tokenId"],"recipient":v["issuer"]}})
+    )
+    .is_err());
+    assert!(execute::<_, _, _, _, Empty>(&mut instance, env.clone(), issuer.clone(), json!({"transfer_nft":{"token_id":b["tokenId"],"recipient":v["issuer"],"authorization":v["lifecycle"]["transfer"]}})).is_err());
     let _: Response<Empty> = execute(
         &mut instance,
         env.clone(),
         owner,
-        json!({"transfer_nft":{"token_id":b["tokenId"],"recipient":v["issuer"]}}),
+        json!({"transfer_nft":{"token_id":b["tokenId"],"recipient":v["issuer"],"authorization":v["lifecycle"]["transfer"]}}),
     )
     .unwrap();
     let _: Response<Empty> = execute(
         &mut instance,
         env.clone(),
         issuer.clone(),
-        json!({"burn":{"token_id":b["tokenId"]}}),
+        json!({"burn":{"token_id":b["tokenId"],"authorization":v["lifecycle"]["burn"]}}),
     )
     .unwrap();
     let burned: Value = from_json(query(&mut instance, env.clone(), proof).unwrap()).unwrap();

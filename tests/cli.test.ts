@@ -57,7 +57,27 @@ test("CLI creates metadata, verifies bytes, constructs proof-bound mint JSON and
 });
 
 test("CLI retains large IDs and refuses unknown options or pretend broadcasting", () => {
-  assert.equal(JSON.parse(run("transfer-message", "--token-id", "9007199254740993", "--recipient", v.owner)).transfer_nft.token_id, "9007199254740993");
+  assert.throws(() => run("transfer-message", "--token-id", "9007199254740993", "--recipient", v.owner));
   assert.equal(JSON.parse(run("collection-message", "--name", "IPI", "--symbol", "IPI", "--issuer", v.issuer)).expected_chain_id, "ipi-testnet-1");
   for (const args of [["deploy"], ["burn-message", "--token-id", "1", "--broadcast", "true"], ["mint-message", "--private-key", "bad"]]) assert.notEqual(spawnSync(process.execPath, [cli, ...args]).status, 0);
+});
+
+test("CLI creates action requests and verifies chip proof before emitting unsigned ownership messages", async () => {
+  const { sign } = await import("./helpers.js");
+  const dir = mkdtempSync(join(tmpdir(), "ipi-action-"));
+  try {
+    for (const action of ["transfer", "send", "burn"]) {
+      const intent = { ...v.binding, action, owner: v.owner, target: action === "burn" ? "" : v.issuer, payloadHex: action === "send" ? "010203" : "", sequence: "9007199254740993", expiresHeight: "9007199254741093" };
+      const input = join(dir, action+"-input.json"), request = join(dir, action+"-request.json"), out = join(dir, action+"-message.json");
+      writeFileSync(input, JSON.stringify(intent));
+      run("action-request", "--intent", input, "--out", request);
+      const r = JSON.parse(readFileSync(request,"utf8"));
+      const signature = Buffer.from(sign(bytes(r.messageHex))).toString("hex");
+      run("action-message", "--request", request, "--public-key", v.publicKey, "--signature", signature, "--format", "compact", "--out", out);
+      const msg = JSON.parse(readFileSync(out,"utf8"));
+      assert.equal(msg[action === "burn" ? "burn" : action+"_nft"].authorization.sequence, intent.sequence);
+      r.sequence = "9007199254740994"; writeFileSync(request,JSON.stringify(r));
+      assert.throws(() => run("action-message", "--request", request, "--public-key", v.publicKey, "--signature", signature, "--format", "compact", "--out", join(dir,"bad.json")), /altered/);
+    }
+  } finally { rmSync(dir,{recursive:true,force:true}); }
 });

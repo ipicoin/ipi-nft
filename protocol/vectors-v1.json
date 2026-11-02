@@ -1,0 +1,19 @@
+{
+  "warning": "TEST ONLY. Public fixture uses a known software key (32 bytes of 0x07). Never provision this key.",
+  "binding": {
+    "chainId": "ipi-testnet-1",
+    "collection": "ipi1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqs85dgj5",
+    "tokenId": "ipi-object-9007199254740993",
+    "tokenUri": "ipfs://bafkreicmdmwf53ta2xenxh6m2bxhfiblhgigy23gelr4pledbbs4kdo3aq",
+    "metadataSha256": "757ddef3f8b24a3f47d9c7bb536718bb5d18e82c32aad70646f556b902476a86"
+  },
+  "issuer": "ipi1qgpqyqszqgpqyqszqgpqyqszqgpqyqszyelxz6",
+  "owner": "ipi1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcr9f78gm",
+  "publicKey": "02989c0b76cb563971fdc9bef31ec06c3560f3249d6ee9e5d83c57625596e05f6f",
+  "bindingSha256": "831d51ea73c7c3efef3a0eff6c2adb177ead3508d6f432a391b7cb1e3b7ec913",
+  "mintNonce": "f5578c5670d9b30d0cca146874c056c5872ca5f058b2b170d6f39cf246452508",
+  "messageHex": "4950495f4e46545f50524f4f465f563100831d51ea73c7c3efef3a0eff6c2adb177ead3508d6f432a391b7cb1e3b7ec913f5578c5670d9b30d0cca146874c056c5872ca5f058b2b170d6f39cf246452508",
+  "messageSha256": "95a43e88dfadde567cabf88e216d9927d30eee4a99ad2395db3fd32662b81697",
+  "signatureCompact": "4cdf7570bca0ccd6390a3472160117ceef63b9483d66633f303dca15e7b4d0f14815ac642c1f1fbdb3d67617080fbb9c0f86641be7a0c88ae20fac6df17c5721",
+  "signatureDer": "304402204cdf7570bca0ccd6390a3472160117ceef63b9483d66633f303dca15e7b4d0f102204815ac642c1f1fbdb3d67617080fbb9c0f86641be7a0c88ae20fac6df17c5721"
+}

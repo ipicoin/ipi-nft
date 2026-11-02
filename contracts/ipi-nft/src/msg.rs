@@ -1,6 +1,6 @@
 use crate::state::ChipExtension;
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Binary, Empty, HexBinary};
+use cosmwasm_std::{Binary, Empty, HexBinary, Uint64};
 use cw721::{msg::Cw721QueryMsg, DefaultOptionalCollectionExtension};
 use cw_utils::Expiration;
 
@@ -27,11 +27,13 @@ pub enum ExecuteMsg {
     TransferNft {
         recipient: String,
         token_id: String,
+        authorization: ActionAuthorization,
     },
     SendNft {
         contract: String,
         token_id: String,
         msg: Binary,
+        authorization: ActionAuthorization,
     },
     Approve {
         spender: String,
@@ -51,6 +53,7 @@ pub enum ExecuteMsg {
     },
     Burn {
         token_id: String,
+        authorization: ActionAuthorization,
     },
     UpdateMinterOwnership(cw_ownable::Action),
 }
@@ -94,4 +97,11 @@ pub struct ProtocolResponse {
     pub version: String,
     pub chain_id: String,
     pub proof_protocol: String,
+}
+
+#[cw_serde]
+pub struct ActionAuthorization {
+    pub sequence: Uint64,
+    pub expires_height: Uint64,
+    pub signature: Binary,
 }

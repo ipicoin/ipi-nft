@@ -49,7 +49,7 @@ export async function fetchJson(url: string, fetchImpl: FetchLike = fetch, maxBy
   } finally { await reader.cancel(); }
   return record(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks))), "REST response");
 }
-export type Token = Binding & { publicKey: Uint8Array; burned: boolean; owner: string | null; issuer: string; initialOwner: string };
+export type Token = Binding & { actionSequence: string; publicKey: Uint8Array; burned: boolean; owner: string | null; issuer: string; initialOwner: string };
 
 /** Queries a trusted REST node; this is not a CometBFT light client. */
 export class IpiNftClient {
@@ -99,7 +99,8 @@ export class IpiNftClient {
     if (!Buffer.from(bindingHash(binding)).equals(Buffer.from(hexBytes(extension.binding_sha256, 32, "binding hash")))) throw new Error("On-chain binding mismatch");
     const publicKey = compressedPublicKey(base64Bytes(extension.chip_public_key, 33, "chip public key"));
     const owner = issuance.burned ? null : address((await this.query({ owner_of: { token_id: id } })).owner, "token owner");
-    return { ...binding, publicKey, owner, burned: issuance.burned, issuer: address(issuance.issuer, "issuer"), initialOwner: address(issuance.initial_owner, "initial owner") };
+    if (typeof issuance.action_sequence !== "string" || !/^(0|[1-9][0-9]{0,19})$/.test(issuance.action_sequence) || BigInt(issuance.action_sequence) > 18446744073709551615n) throw new Error("Invalid action sequence");
+    return { ...binding, actionSequence: issuance.action_sequence, publicKey, owner, burned: issuance.burned, issuer: address(issuance.issuer, "issuer"), initialOwner: address(issuance.initial_owner, "initial owner") };
   }
   async authenticateChip(id: string, exchange: (request: { nonce: Uint8Array; bindingHash: Uint8Array; message: Uint8Array; signal: AbortSignal }) => Promise<Uint8Array>, ttlMs = 30_000): Promise<Token> {
     const token = await this.getToken(id);

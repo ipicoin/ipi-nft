@@ -52,10 +52,14 @@
         "transfer_nft": {
           "type": "object",
           "required": [
+            "authorization",
             "recipient",
             "token_id"
           ],
           "properties": {
+            "authorization": {
+              "$ref": "#/definitions/ActionAuthorization"
+            },
             "recipient": {
               "type": "string"
             },
@@ -77,11 +81,15 @@
         "send_nft": {
           "type": "object",
           "required": [
+            "authorization",
             "contract",
             "msg",
             "token_id"
           ],
           "properties": {
+            "authorization": {
+              "$ref": "#/definitions/ActionAuthorization"
+            },
             "contract": {
               "type": "string"
             },
@@ -218,9 +226,13 @@
         "burn": {
           "type": "object",
           "required": [
+            "authorization",
             "token_id"
           ],
           "properties": {
+            "authorization": {
+              "$ref": "#/definitions/ActionAuthorization"
+            },
             "token_id": {
               "type": "string"
             }
@@ -294,6 +306,26 @@
           ]
         }
       ]
+    },
+    "ActionAuthorization": {
+      "type": "object",
+      "required": [
+        "expires_height",
+        "sequence",
+        "signature"
+      ],
+      "properties": {
+        "expires_height": {
+          "$ref": "#/definitions/Uint64"
+        },
+        "sequence": {
+          "$ref": "#/definitions/Uint64"
+        },
+        "signature": {
+          "$ref": "#/definitions/Binary"
+        }
+      },
+      "additionalProperties": false
     },
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",

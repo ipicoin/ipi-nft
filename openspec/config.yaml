@@ -4,8 +4,8 @@ context: |
   Write artifacts in English; keep OpenSpec headings and SHALL/MUST keywords in English.
   IPI NFT is a GNU AGPL v3-licensed (AGPL-3.0-only) CosmWasm CW721 contract with a TypeScript SDK and CLI.
   Read AGENTS.md and openspec/README.md for the source map and change workflow.
-  Preserve ipi-nft-chip-v1 byte compatibility across Rust, TypeScript and Java Card.
-  Ownership follows CW721; a chip proof authenticates a key and never authorizes a transfer.
+  Implement ipi-nft-chip-v2 with P256; retain v1 records as historical evidence.
+  NFT ownership is authoritative; transfer/send/burn require current owner plus a distinct chip action proof.
   The contract/SDK/CLI exist and a testnet deployment is recorded. No qualified NFT
   applet, card transport, provisioning implementation or Pokédex NFT Station is bundled.
   The CLI prepares unsigned messages; native IPI tooling signs and broadcasts.

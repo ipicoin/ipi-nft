@@ -21,7 +21,7 @@ if (process.argv[2] !== "--expect-source-digest" || process.argv[3] !== sourceDi
 const wasm = readFileSync(resolve(root, "artifacts/ipi_nft.wasm"));
 if (!wasm.subarray(0, 8).equals(Buffer.from("0061736d01000000", "hex"))) throw new Error("Invalid Wasm artifact");
 const manifest = {
-  schemaVersion: 1, contract: "crates.io:ipi-nft", version: "0.1.0",
+  schemaVersion: 1, contract: "crates.io:ipi-nft", version: "0.2.0",
   optimizer: "cosmwasm/optimizer@sha256:7e0b9229c1a4118d0c9a2af2e7f5d95a91f264c26a2ce5681c779926e74d7f85",
   platform: "linux/amd64", artifact: "ipi_nft.wasm", wasmSha256: hash(wasm), bytes: wasm.length,
   gitRevision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),

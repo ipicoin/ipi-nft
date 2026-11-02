@@ -68,6 +68,7 @@ pub struct Issuance {
     pub initial_owner: String,
     pub minted_height: u64,
     pub burned: bool,
+    pub action_sequence: cosmwasm_std::Uint64,
 }
 
 // Deliberately retained after burn: neither a token ID nor a chip can be recycled.

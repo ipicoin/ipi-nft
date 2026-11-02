@@ -20,13 +20,15 @@
 
 ## What is IPI NFT?
 
-IPI NFT connects a physical item to a standard, transferable NFT on the IPI Cosmos blockchain. Each item contains an asymmetric secure chip. During provisioning, the chip generates its own secp256k1 key pair. The private key stays inside the chip; the public key becomes part of the NFT's permanent identity.
+IPI NFT connects a physical item to an owner-and-chip authorized NFT on the IPI Cosmos blockchain. Each item contains an asymmetric secure chip. During provisioning, the chip generates its own secp256r1 (NIST P-256) key pair. The private key stays inside the chip; the public key becomes part of the NFT's permanent identity.
 
 A reader authenticates an item by sending a fresh random challenge. The chip signs a message containing that challenge and its locked NFT binding. The reader checks the signature against the public key recorded on IPI. Copying the public key, NFC data or image is insufficient to answer a new challenge.
 
-The contract implements CW721 ownership, transfers, approvals, receiver callbacks, enumeration and burning. No separate web application is required.
+The contract retains CW721 queries and receiver callbacks. Transfer, send and burn require the current owner and chip; approvals cannot bypass those checks. No separate web application is required.
 
-> **Release status:** v0.1.0 has a [verified testnet deployment](deployments/ipi-testnet-1.release.md) on `ipi-testnet-1`. The contract, Wasm, SDK and CLI are available, but the release has not been independently audited. Java Card applet provisioning and the **NFT Station** tab in `ipi-pokedex` are the next integration phase; they are not implemented here.
+> **Fork status (2026-10-31):** v0.2.0 / ipi-nft-chip-v2 is under local validation on branch `feat/p256-owner-chip`. Object chips use P256; account wallets retain k1/r1. See [v2 actions](docs/OWNER-CHIP-ACTIONS.md).
+
+> **Historical release status:** v0.1.0 has a [verified testnet deployment](deployments/ipi-testnet-1.release.md) on `ipi-testnet-1`. The contract, Wasm, SDK and CLI are available, but the release has not been independently audited. Java Card applet provisioning and the **NFT Station** tab in `ipi-pokedex` are the next integration phase; they are not implemented here.
 
 ## Built for IPI secure elements
 
@@ -57,13 +59,13 @@ flowchart LR
 | Component | Responsibility |
 | --- | --- |
 | **Chip** | Generates and retains its private key; signs proofs for its permanently locked binding. |
-| **Contract** | Records the NFT, chip public key, metadata commitment and owner; enforces CW721 permissions. |
+| **Contract** | Records the NFT, chip public key, metadata commitment and owner; enforces current owner plus chip authorization. |
 | **SDK** | Constructs canonical messages, normalizes Java Card signatures, checks the deployment and authenticates fresh proofs. |
 | **CLI** | Prepares metadata and unsigned transaction messages; verifies deployments, transaction results and metadata. |
 | **IPI native node CLI** | Signs and broadcasts with IPI's own account/keyring implementation. |
 | **Pokédex, next phase** | Installs the NFT applet, provisions chips and coordinates issuance. |
 
-**Ownership and authenticity are separate.** The owner's IPI account controls transfers. The chip proves possession of the key assigned to the item. Passing an item to another person does not automatically transfer its on-chain NFT, and transferring the NFT does not prove physical delivery.
+**Ownership and authenticity are separate.** The owner's IPI account and the chip jointly authorize transfers. The chip proves possession of the key assigned to the item. Passing an item to another person does not automatically transfer its on-chain NFT, and transferring the NFT does not prove physical delivery.
 
 ## Guarantees enforced by the contract
 
@@ -71,7 +73,7 @@ flowchart LR
 - Minting requires a valid chip signature bound to the **chain, collection, token ID, metadata URI, metadata hash, issuer and initial owner**.
 - The chip key, metadata URI and metadata hash are immutable after minting.
 - A token ID and a compressed chip public key can each be used once per collection. Burning preserves an issuance tombstone and never releases either identity.
-- Standard CW721 transfers and approvals remain available. A chip signature does not grant permission to move an NFT or spend funds.
+- Transfer, send and burn require owner plus chip action proof. Approval/operator records cannot bypass this policy. Reader proofs do not authorize ownership changes or payments.
 - The supported deployment has **no upgrade administrator**. The SDK verifies this together with the chain ID, collection address, code ID, Wasm checksum and protocol version.
 
 Cryptography proves control of a key. Establishing that the key was generated inside approved, non-exportable hardware also requires trusted provisioning and a qualified applet. See the [security model](SECURITY.md).
@@ -208,7 +210,7 @@ An authentic item should be able to answer for itself. The IPI design gives each
 
 ### Asymmetric by design
 
-IPI NFT uses **ECDSA on secp256k1**, the 256-bit elliptic curve defined in [SEC 2](https://www.secg.org/sec2-v2.pdf). Its equation is `y² = x³ + 7` over a finite field. A private key is a secret scalar; the public key is a curve point derived by multiplying the generator point by that scalar. Security relies on the difficulty of reversing that operation to recover the secret.
+IPI NFT v2 uses **ECDSA on secp256r1 = NIST P-256** for object chips. Account wallets independently retain k1/r1 support. A private key is a secret scalar and its public key is a curve point; signature verification proves possession of that key, not physical proximity or hardware provenance.
 
 This asymmetry makes public verification possible: anyone can check a signature using the public key without receiving the private key. Readers do not need a shared collection-wide signing secret. Under the required hardware profile, the private key is generated inside the chip, cannot be exported or imported, and cannot be reset or rebound to another NFT. The applet signs only the defined NFT proof using its stored binding.
 
@@ -220,7 +222,7 @@ This asymmetry makes public verification possible: anyone can check a signature 
 | **Resistance to key theft and cloning** | The required secure-element profile keeps the private key inside the chip; copying public data does not copy its signing ability. |
 | **Resistance to replay** | The reader generates a fresh 32-byte random challenge, allows one attempt and expires it after 30 seconds. |
 | **Permanent identity within a collection** | The contract fixes the chip key and metadata commitment at mint; burning never releases the key or token ID for reuse. |
-| **Ownership you control** | CW721 permissions govern transfers; an authenticity proof alone cannot move your NFT or spend funds. |
+| **Ownership you control** | Current owner plus chip action proof govern transfers; reader proofs do not authorize transfers or payments. |
 
 **Infinite security is the ambition.** Protection depends on qualified hardware, the applet, trusted provisioning, the reader and physical integration. Fresh signatures alone cannot prevent a relay to a genuine remote chip or moving a genuine chip into another object. The [security model](SECURITY.md) explains these boundaries and the remaining qualification work.
 

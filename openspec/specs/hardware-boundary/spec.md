@@ -15,7 +15,7 @@ Project documentation SHALL identify the contract, SDK and CLI as available and 
 - **THEN** it can identify the missing hardware work and cannot treat a passing software test as completed real-card qualification
 
 ### Requirement: A production chip profile protects its own identity
-A qualified NFT profile MUST generate its secp256k1 private key internally, permanently lock the NFT binding and build fixed-purpose proof messages from stored state. Its interface MUST prohibit private-key export/import, reset, rebinding and unrestricted signing with the NFT key.
+A qualified NFT profile MUST generate its secp256r1 (NIST P-256) private key internally, permanently lock the NFT binding and build fixed-purpose reader, mint and action messages from stored state. Its interface MUST prohibit private-key export/import, reset, rebinding and unrestricted signing with the NFT key.
 
 #### Scenario: A generic wallet applet can reset or export its key
 - **WHEN** it is considered for use as the NFT applet

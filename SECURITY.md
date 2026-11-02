@@ -1,6 +1,6 @@
 # Security model
 
-IPI NFT v0.1.0 is deployed on testnet, not independently audited. Its guarantees depend on the contract, approved deployment, provisioning process and reader together.
+IPI NFT v0.2.0 is a local P256 integration candidate, not deployed or independently audited. The recorded v0.1.0 deployment is historical and incompatible with this SDK. Its guarantees depend on the contract, approved deployment, provisioning process and reader together.
 
 ## Trust boundaries
 
@@ -16,7 +16,7 @@ A compromised REST node can lie about chain state. `IpiNftClient` checks consist
 
 ## Contract protections
 
-The contract delegates standard NFT ownership behavior to CW721 0.20 and exposes an explicit execute allowlist. Only the minter can mint; owner/approval/operator permissions control transfers and burning. Minter ownership changes require a proposed recipient to accept. Renouncing that role prevents future minting.
+The contract delegates standard NFT ownership behavior to CW721 0.20 and exposes an explicit execute allowlist. Only the minter can mint; transfer/send/burn require the current NFT owner as sender plus a P256 action proof. Approval/operator rights never substitute for the owner. Action sequence and bounded expiry prevent stale authorization reuse. Minter ownership changes require a proposed recipient to accept. Renouncing that role prevents future minting.
 
 Mint signatures bind the network, contract, ID, URI, metadata hash, issuer and initial owner. Compressed public keys are canonical; compact signatures must be low-S. Inputs are bounded. There are no metadata/key replacement routes. ID/key tombstones survive burns. Identity uniqueness is **within a collection**, not across every contract deployed on IPI or another chain.
 
@@ -30,7 +30,7 @@ The contract can prove that a signature corresponds to a public key. It cannot d
 
 Production provisioning must generate the key inside the chip, permanently lock the binding and disallow export, import, reset/rebind and unrestricted signing. GlobalPlatform management keys must be managed independently of NFT keys. A reused wallet profile is insufficient unless its exact capabilities have been reviewed for this purpose. The [chip protocol](docs/CHIP-PROTOCOL.md) defines the required lifecycle and qualification checks.
 
-All software signing keys in this repository appear only in test code. The shared vector uses a publicly known key consisting of 32 bytes of `07`. It is deliberately unsuitable for production, regardless of whether its signatures pass the contract.
+All software signing keys in this repository appear only in test code. The shared v2 vector uses a publicly known key consisting of 32 bytes of `07`. It is deliberately unsuitable for production, regardless of whether its signatures pass the contract.
 
 ## Reader and content protections
 
