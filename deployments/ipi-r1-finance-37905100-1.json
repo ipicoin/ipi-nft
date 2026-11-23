@@ -1,0 +1,20 @@
+{
+  "chainId": "ipi-r1-finance-37905100-1",
+  "rest": "http://127.0.0.1:11317",
+  "collection": "ipi14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sccv9tz",
+  "codeId": "1",
+  "wasmSha256": "31c5713031532e33e5718107d03c2e44264058c98c9f2fd455464dcbe97d1d77",
+  "minter": "ipi1p6v55f02nfyuhk4e3srmt9vua5pqmpd9j2rkzr",
+  "admin": null,
+  "proofProtocol": "ipi-nft-chip-v2",
+  "contractVersion": "0.2.0",
+  "storeTxHash": "4061D5F34250ACB8D6EA7AD4DE8EA02434B74E746ABE6FF49356C9ED19239A3F",
+  "storeHeight": "1380603",
+  "instantiateTxHash": "4D188E67DCB448DB10866C376E554A339FEA55DE4D9C4054E202854FE1F9663D",
+  "instantiateHeight": "1380618",
+  "gitRevision": "51608b935609bf12e81186dcec53db5a2722d8fb",
+  "sourceDigest": "5db5eea302696d2fee8e1f08bfb8793983c9eb7780775bf64d1e89310072f6e1",
+  "deployedOn": "2026-11-23",
+  "restTransport": "SSH local port 11317 to shadowblade.space loopback port 1317",
+  "serverInstallation": "/opt/ipi-nft/releases/2026-11-23"
+}

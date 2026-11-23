@@ -1,6 +1,6 @@
 # Deploy and issue on IPI
 
-This guide targets **`ipi-testnet-1`**. Run commands in the repository root using **Bash**. A [verified testnet collection](../deployments/ipi-testnet-1.release.md) is recorded; the steps below describe creating another deployment. No mainnet collection is configured. `deployments/ipi-testnet-1.template.json` intentionally contains `null` fields and cannot pass SDK validation.
+Run commands in the repository root using **Bash**. This guide uses **`ipi-testnet-1`** for the v2 deployment examples. The [historical v1 collection](../deployments/ipi-testnet-1.release.md) serves the Java Card profile. Pokédex uses a separate P-256 v2 collection for NTAG X DNA.
 
 The native IPI node executable and keyring must handle signing. The prototype account adapter supports Cosmos SDK secp256k1 and secp256r1 with SIGN_MODE_DIRECT. Select the account type and address derivation actually configured on the target chain; the historical testnet wallet instructions are not evidence of compatibility with a different account profile. The NFT chip key is a separate identity key and must never be used as the issuer's account key.
 
@@ -17,6 +17,8 @@ cat artifacts/release.json
 ```
 
 The contract uses CosmWasm 2.x, CW721 0.20 and secp256r1 (P256) verification. The build validates the module and executes it in CosmWasm VM 2.3.4. The public testnet node reported wasmd 0.60.8 and wasmvm 2.3.4 during the [readiness check](TESTNET-READINESS.md). Recheck live configuration and upload/instantiate permissions before deploying; the node can be upgraded independently of this repository.
+
+The Pokédex NTAG X DNA profile pins the Wasm tested by Tokenomy with Cosmos SDK k1 and r1 accounts. Its SHA-256 is `31c5713031532e33e5718107d03c2e44264058c98c9f2fd455464dcbe97d1d77`. Verify that the optimized artifact has this checksum before uploading.
 
 For a tagged release, build from the committed checkout and archive `ipi_nft.wasm`, `checksums.txt` and `release.json` together. The manifest records the actual Wasm hash, pinned optimizer digest, source hashes, Git revision and dirty state. Never reuse another project's code ID, including a Card Vault code ID.
 
@@ -51,9 +53,11 @@ curl --fail --silent --show-error "$IPI_REST/cosmos/base/tendermint/v1beta1/node
 "$IPI_NODE_BIN" query wasm params --node "$IPI_RPC" --output json
 ```
 
-Verify `default_node_info.network == ipi-testnet-1` and RPC status/catching-up state against a trusted node. Both endpoints and the SDK's Node.js fetch path were reachable during the final readiness check; earlier Python HTTP probes returned 403, so use the documented CLI/SDK path and investigate client-specific access failures. The SDK will reject a different chain. `aipi` is the configured atomic denomination (18 decimal places per IPI); query `/cosmos/base/node/v1beta1/config` and check the live chain's minimum gas policy before setting fees.
+Verify that REST and RPC report the expected chain ID, the node is synchronized and the latest block height advances between checks. `aipi` is the configured atomic denomination (18 decimal places per IPI). Check the live node's minimum gas policy at `/cosmos/base/node/v1beta1/config` and account for any dynamic base price before setting fees.
 
 ## 2. Upload and instantiate
+
+Query `wasm list-code` and compare the code hashes with the release manifest. If the hash already exists, inspect its instances with `wasm list-contract-by-code`. Reuse an existing collection only after the Pokédex export below verifies its identity and minter.
 
 Create an unsigned collection message:
 
@@ -71,6 +75,8 @@ Upload the **exact verified artifact** through your native node CLI. These are s
 ```sh
 "$IPI_NODE_BIN" tx wasm store artifacts/ipi_nft.wasm "${IPI_TX_ARGS[@]}"
 ```
+
+On the Tokenomy prototype, the qualified upload used a declared limit of `5900000` gas within a `6000000` transaction-phase budget that reserves `100000` for policy lookup. If this is your chain's policy, use `--gas 5900000` in place of `--gas auto --gas-adjustment 1.4` for the store transaction and check the applicable base price before each submission.
 
 The CLI's normal transaction confirmation remains active. Save the resulting transaction hash. A `sync` response with `code: 0` only means the node accepted the transaction for processing. It is **not** proof of successful inclusion.
 
@@ -95,37 +101,26 @@ Instantiate with **no administrator**:
 
 ```sh
 "$IPI_NODE_BIN" tx wasm instantiate "$IPI_NFT_CODE_ID" "$(cat data/instantiate.json)" \
-  --label "IPI Objects v1" --no-admin "${IPI_TX_ARGS[@]}"
+  --label "IPI Objects v2" --no-admin "${IPI_TX_ARGS[@]}"
 ```
 
-Confirm this transaction by hash in the same way. Extract the collection address from the confirmed instantiate event. Then write an operator-approved deployment record:
+Confirm the transaction by hash and extract the collection address from the instantiate event. Export the verified deployment for Pokédex once the collection is live.
 
 ```sh
-# export IPI_NFT_COLLECTION=ipi1...  # Actual contract address, not an account address
-node --input-type=module <<'JS'
-import { readFileSync, writeFileSync } from 'node:fs';
-import { validateDeployment } from './dist/sdk/index.js';
-const release = JSON.parse(readFileSync('artifacts/release.json', 'utf8'));
-const deployment = validateDeployment({
-  chainId: process.env.IPI_CHAIN_ID,
-  rest: process.env.IPI_REST,
-  collection: process.env.IPI_NFT_COLLECTION,
-  codeId: process.env.IPI_NFT_CODE_ID,
-  wasmSha256: release.wasmSha256,
-});
-writeFileSync('data/deployment.json', JSON.stringify(deployment, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-JS
-npm run nft -- verify-deployment --deployment data/deployment.json
+# export IPI_NFT_COLLECTION=ipi1...  # Address from the confirmed instantiate event
+npm run nft -- pokedex-deployment \
+  --chain-id "$IPI_CHAIN_ID" --rest "$IPI_REST" \
+  --collection "$IPI_NFT_COLLECTION" --code-id "$IPI_NFT_CODE_ID" \
+  --issuer "$IPI_ISSUER" --out data/deployment.json
 ```
 
-This checks the chain, exact address and code ID, advertised code checksum and downloaded Wasm bytes, absence of an upgrade administrator, contract name/version and proof protocol. Query `get_minter_ownership` and confirm that its `owner` is your intended issuer before provisioning any chips:
+The command verifies the chain, collection address, code ID, advertised checksum and downloaded Wasm, absence of an upgrade administrator, contract name and version, proof protocol and expected minter. Keep the successful store and instantiate transaction hashes and the Wasm release provenance with the public v2 deployment record.
 
-```sh
-"$IPI_NODE_BIN" query wasm contract-state smart "$IPI_NFT_COLLECTION" \
-  '{"get_minter_ownership":{}}' --node "$IPI_RPC" --output json
-```
+### Hand off to Pokédex
 
-Commit a public deployment record to `deployments/ipi-testnet-1.json` only after these checks. Record store/instantiate transaction hashes in a companion release note. Distribute this record through a trusted channel: accepting a manifest supplied by an arbitrary chip would defeat collection verification.
+Distribute `data/deployment.json` through a trusted operator channel. Select **NXP NTAG X DNA · P-256 · v2** and load the file with **Choose v2 collection**. For the Pokédex CLI, set `IPI_NFT_NTAG_DEPLOYMENT` to its absolute path or save it to `protocol/ntag-deployment.local.json` in the Pokédex checkout.
+
+Use **Write NFT** in Pokédex to prepare and publish the metadata, and then write the chip with its application credential. Run the exported `mint.json` with the collection issuer's native IPI keyring, confirm the transaction and use **Verify blockchain mint** with the chip present. Sections 3–5 also describe the equivalent manual metadata and transaction-message workflow.
 
 ## 3. Publish the item metadata
 

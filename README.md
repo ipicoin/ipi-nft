@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Your object. Its cryptographic identity. On IPI.</strong><br />
-  Open-source CW721 contract · Java Card proof protocol · TypeScript SDK · Command-line tools
+  Open-source CW721 contract · P-256 chip proof protocol · TypeScript SDK · Command-line tools
 </p>
 
 <p align="center">
@@ -26,9 +26,11 @@ A reader authenticates an item by sending a fresh random challenge. The chip sig
 
 The contract retains CW721 queries and receiver callbacks. Transfer, send and burn require the current owner and chip; approvals cannot bypass those checks. No separate web application is required.
 
-> **Fork status (2026-10-31):** v0.2.0 / ipi-nft-chip-v2 is under local validation on branch `feat/p256-owner-chip`. Object chips use P256; account wallets retain k1/r1. See [v2 actions](docs/OWNER-CHIP-ACTIONS.md).
+v0.2.0 implements `ipi-nft-chip-v2`. Tokenomy verified the contract lifecycle locally with both secp256k1 and secp256r1 accounts. The Pokédex NFT Station uses the same Wasm checksum for its NTAG X DNA profile. See the [deployment handoff](docs/DEPLOYMENT.md#hand-off-to-pokédex) and [v2 actions](docs/OWNER-CHIP-ACTIONS.md).
 
-> **Historical release status:** v0.1.0 has a [verified testnet deployment](deployments/ipi-testnet-1.release.md) on `ipi-testnet-1`. The contract, Wasm, SDK and CLI are available, but the release has not been independently audited. Java Card applet provisioning and the **NFT Station** tab in `ipi-pokedex` are the next integration phase; they are not implemented here.
+The finance-network v2 collection was deployed and verified on 23 November 2026. Its operator guide includes the station launcher and manual mint commands. [Live v2 deployment](deployments/ipi-r1-finance-37905100-1.release.md)
+
+The [historical v0.1.0 testnet deployment](deployments/ipi-testnet-1.release.md) uses the Java Card profile.
 
 ## Built for IPI secure elements
 
@@ -38,7 +40,7 @@ The contract retains CW721 queries and receiver callbacks. Transfer, send and bu
   <strong>Open source on-chain. A private key inside your object.</strong>
 </p>
 
-**IPI secure elements will be available to buy soon.** This [GNU AGPL v3-licensed](LICENSE) smart contract is designed for full compatibility with the upcoming IPI secure elements through the [IPI NFT chip protocol](docs/CHIP-PROTOCOL.md). The planned integration covers on-chip key generation, permanent NFT binding, signed mint proofs and fresh authenticity checks. The contract and SDK implement the verification side today; the hardware applet, provisioning tools and real-device qualification are the next step.
+This GNU AGPL v3-licensed contract verifies chip proofs for the IPI NFT protocol. The Pokédex NTAG X DNA profile covers on-chip key generation, permanent NFT binding, signed mint proofs and fresh authenticity checks. Real-device qualification depends on the intended chip and provisioning process. [License](LICENSE) · [Chip protocol](docs/CHIP-PROTOCOL.md)
 
 The goal is simple: give a collectible, artwork or physical product an identity that can prove itself. Its public key is recorded on IPI. Its private key is generated and retained inside the secure element. A scan asks the chip for a new cryptographic proof, while the open-source contract lets anyone inspect how issuance, identity and ownership are enforced.
 
@@ -60,10 +62,10 @@ flowchart LR
 | --- | --- |
 | **Chip** | Generates and retains its private key; signs proofs for its permanently locked binding. |
 | **Contract** | Records the NFT, chip public key, metadata commitment and owner; enforces current owner plus chip authorization. |
-| **SDK** | Constructs canonical messages, normalizes Java Card signatures, checks the deployment and authenticates fresh proofs. |
+| **SDK** | Constructs canonical messages, normalizes P-256 signatures, checks the deployment and authenticates fresh proofs. |
 | **CLI** | Prepares metadata and unsigned transaction messages; verifies deployments, transaction results and metadata. |
 | **IPI native node CLI** | Signs and broadcasts with IPI's own account/keyring implementation. |
-| **Pokédex, next phase** | Installs the NFT applet, provisions chips and coordinates issuance. |
+| **Pokédex NFT Station** | Provisions NTAG X DNA chips, exports mint messages and verifies issuance with the chip present. |
 
 **Ownership and authenticity are separate.** The owner's IPI account and the chip jointly authorize transfers. The chip proves possession of the key assigned to the item. Passing an item to another person does not automatically transfer its on-chain NFT, and transferring the NFT does not prove physical delivery.
 

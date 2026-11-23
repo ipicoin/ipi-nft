@@ -8,6 +8,9 @@ import {
 } from "./core.js";
 import { fetchJson, IpiNftClient, validateDeployment, endpoint } from "./client.js";
 
+// Tokenomy's qualified v2 Wasm, pinned by the Pokédex NTAG X DNA profile.
+const POKEDEX_WASM_SHA256 = "31c5713031532e33e5718107d03c2e44264058c98c9f2fd455464dcbe97d1d77";
+
 function file(path: string, limit: number): Buffer {
   if (!statSync(path).isFile() || statSync(path).size > limit) throw new Error(`Input file must be regular and <= ${limit} bytes`);
   const bytes = readFileSync(path);
@@ -29,6 +32,7 @@ npm run nft -- <command> [options]
   mint-message         --request FILE --public-key HEX --signature HEX [--format der|compact] --out FILE
   action-request       --intent FILE --out FILE
   action-message       --request FILE --public-key HEX --signature HEX [--format der|compact] --out FILE
+  pokedex-deployment   --chain-id ID --rest URL --collection IPI_ADDRESS --code-id ID --issuer IPI_ADDRESS --out FILE
   verify-deployment    --deployment FILE
   token                --deployment FILE --token-id ID
   verify-metadata      --metadata FILE --sha256 HEX
@@ -44,6 +48,7 @@ const specs: Record<string, string[]> = {
   "mint-message": ["request", "public-key", "signature", "format", "out"],
   "action-request": ["intent", "out"],
   "action-message": ["request", "public-key", "signature", "format", "out"],
+  "pokedex-deployment": ["chain-id", "rest", "collection", "code-id", "issuer", "out"],
   "verify-deployment": ["deployment"], token: ["deployment", "token-id"],
   "verify-metadata": ["metadata", "sha256"], transaction: ["rest", "chain-id", "tx-hash"],
 };
@@ -102,6 +107,23 @@ async function main() {
       if (sig.length < 16 || sig.length > 144 || sig.length % 2) throw new Error("Invalid signature length");
       output(ownershipMessage(input, compressedPublicKey(hexBytes(key, key.length === 66 ? 33 : 65)), compactSignature(hexBytes(sig, sig.length / 2), format)), required("out"));
     }
+  } else if (command === "pokedex-deployment") {
+    const chainId = required("chain-id");
+    if (!/^[A-Za-z0-9._-]{1,50}$/.test(chainId)) throw new Error("Pokédex NTAG requires a chain ID of 1–50 ASCII letters, digits, dots, underscores or hyphens");
+    const issuer = address(required("issuer"), "expected minter");
+    const out = required("out");
+    const client = new IpiNftClient({
+      chainId,
+      rest: required("rest"),
+      collection: required("collection"),
+      codeId: required("code-id"),
+      wasmSha256: POKEDEX_WASM_SHA256,
+    });
+    await client.checkDeployment();
+    const minter = address((await client.query({ minter: {} })).minter, "collection minter");
+    if (minter !== issuer) throw new Error("Collection minter does not match the expected issuer");
+    output(client.deployment, out);
+    output({ verified: true, issuer, ...client.deployment });
   } else if (command === "verify-deployment" || command === "token") {
     const client = new IpiNftClient(validateDeployment(jsonFile(required("deployment"))));
     if (command === "verify-deployment") { await client.checkDeployment(); output({ verified: true, ...client.deployment }); }

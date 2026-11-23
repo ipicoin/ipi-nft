@@ -1,6 +1,6 @@
 # Security model
 
-IPI NFT v0.2.0 is a local P256 integration candidate, not deployed or independently audited. The recorded v0.1.0 deployment is historical and incompatible with this SDK. Its guarantees depend on the contract, approved deployment, provisioning process and reader together.
+IPI NFT v0.2.0 is deployed on `ipi-r1-finance-37905100-1`. Its guarantees depend on the contract, approved deployment, provisioning process and reader together. Physical issuance and an independent audit require separate evidence. The historical v0.1.0 deployment serves the Java Card profile. [V2 deployment record](deployments/ipi-r1-finance-37905100-1.release.md)
 
 ## Trust boundaries
 

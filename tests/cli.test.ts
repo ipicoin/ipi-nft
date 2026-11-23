@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { execFile, execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createServer } from "node:http";
 import { promisify } from "node:util";
+import { CONTRACT_NAME, CONTRACT_VERSION, hashHex, PROTOCOL } from "../sdk/core.js";
 import { bytes, png, vector as v } from "./helpers.js";
 const cli = resolve("dist/sdk/cli.js");
 const run = (...args: string[]) => execFileSync(process.execPath, [cli, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
@@ -60,6 +61,40 @@ test("CLI retains large IDs and refuses unknown options or pretend broadcasting"
   assert.throws(() => run("transfer-message", "--token-id", "9007199254740993", "--recipient", v.owner));
   assert.equal(JSON.parse(run("collection-message", "--name", "IPI", "--symbol", "IPI", "--issuer", v.issuer)).expected_chain_id, "ipi-testnet-1");
   for (const args of [["deploy"], ["burn-message", "--token-id", "1", "--broadcast", "true"], ["mint-message", "--private-key", "bad"]]) assert.notEqual(spawnSync(process.execPath, [cli, ...args]).status, 0);
+});
+
+test("Pokédex deployment export rejects unsupported chain IDs and a different v2 Wasm", async () => {
+  const codeId = "9007199254740993";
+  const wasm = Buffer.from("0061736d01000000", "hex");
+  const server = createServer((req, res) => {
+    let response: unknown;
+    if (req.url?.endsWith("/node_info")) response = { default_node_info: { network: v.binding.chainId } };
+    else if (req.url?.endsWith(`/contract/${v.binding.collection}`)) {
+      response = { address: v.binding.collection, contract_info: { code_id: codeId, admin: "" } };
+    } else if (req.url?.endsWith(`/code/${codeId}`)) {
+      response = { code_info: { code_id: codeId, data_hash: hashHex(wasm) }, data: wasm.toString("base64") };
+    } else {
+      response = { data: { contract: CONTRACT_NAME, version: CONTRACT_VERSION, chain_id: v.binding.chainId, proof_protocol: PROTOCOL } };
+    }
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify(response));
+  });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const location = server.address();
+  assert.ok(location && typeof location !== "string");
+  const dir = mkdtempSync(join(tmpdir(), "ipi-pokedex-deployment-"));
+  const out = join(dir, "deployment.json");
+  const args = [cli, "pokedex-deployment", "--rest", `http://127.0.0.1:${location.port}`,
+    "--collection", v.binding.collection, "--code-id", codeId, "--issuer", v.issuer, "--out", out];
+  try {
+    const exec = promisify(execFile);
+    await assert.rejects(exec(process.execPath, [...args, "--chain-id", "x".repeat(51)]), /Pokédex NTAG requires a chain ID/);
+    await assert.rejects(exec(process.execPath, [...args, "--chain-id", v.binding.chainId]), /Wasm checksum mismatch/);
+    assert.equal(existsSync(out), false);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("CLI creates action requests and verifies chip proof before emitting unsigned ownership messages", async () => {
